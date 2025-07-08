@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "10445178478",
+    "project_id": "canva-drawer",
+    "storage_bucket": "canva-drawer.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:10445178478:android:db4f740846f35472ce087f",
+        "android_client_info": {
+          "package_name": "com.example.canvas_drawer_plus"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBOl8ZJMIBlPFnTMsynM06QCbRG4QT9Txg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
