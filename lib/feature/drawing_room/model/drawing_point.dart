@@ -29,6 +29,9 @@ class DrawingPoint {
   @Index()
   final int? roomId;
 
+  // User ID to track ownership for undo/redo functionality
+  final String? userId;
+
   // Constructor with all required fields
   DrawingPoint({
     this.id = Isar.autoIncrement,
@@ -39,6 +42,7 @@ class DrawingPoint {
     required this.tool,
     required this.createdAt,
     this.roomId,
+    this.userId,
   });
 
   // Named constructor for easy creation from your original model
@@ -49,6 +53,7 @@ class DrawingPoint {
     this.width = 2,
     this.tool = DrawingTool.pen,
     this.roomId,
+    this.userId,
     DateTime? createdAt,
   }) : offsetsX = offsets.map((offset) => offset.dx).toList(),
        offsetsY = offsets.map((offset) => offset.dy).toList(),
@@ -75,6 +80,7 @@ class DrawingPoint {
     double? width,
     DrawingTool? tool,
     int? roomId,
+    String? userId,
     DateTime? createdAt,
   }) {
     final newOffsets = offsets ?? this.offsets;
@@ -86,6 +92,7 @@ class DrawingPoint {
       width: width ?? this.width,
       tool: tool ?? this.tool,
       roomId: roomId ?? this.roomId,
+      userId: userId ?? this.userId,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -119,6 +126,7 @@ class DrawingPoint {
       tool: tool,
       createdAt: createdAt,
       roomId: roomId,
+      userId: userId,
     );
   }
 
@@ -140,6 +148,7 @@ class DrawingPoint {
       tool: tool,
       createdAt: createdAt,
       roomId: roomId,
+      userId: userId,
     );
   }
 

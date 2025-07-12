@@ -58,8 +58,13 @@ const DrawingPointSchema = CollectionSchema(
       type: IsarType.byte,
       enumMap: _DrawingPointtoolEnumValueMap,
     ),
-    r'width': PropertySchema(
+    r'userId': PropertySchema(
       id: 8,
+      name: r'userId',
+      type: IsarType.string,
+    ),
+    r'width': PropertySchema(
+      id: 9,
       name: r'width',
       type: IsarType.double,
     )
@@ -100,6 +105,12 @@ int _drawingPointEstimateSize(
   var bytesCount = offsets.last;
   bytesCount += 3 + object.offsetsX.length * 8;
   bytesCount += 3 + object.offsetsY.length * 8;
+  {
+    final value = object.userId;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   return bytesCount;
 }
 
@@ -117,7 +128,8 @@ void _drawingPointSerialize(
   writer.writeDoubleList(offsets[5], object.offsetsY);
   writer.writeLong(offsets[6], object.roomId);
   writer.writeByte(offsets[7], object.tool.index);
-  writer.writeDouble(offsets[8], object.width);
+  writer.writeString(offsets[8], object.userId);
+  writer.writeDouble(offsets[9], object.width);
 }
 
 DrawingPoint _drawingPointDeserialize(
@@ -135,7 +147,8 @@ DrawingPoint _drawingPointDeserialize(
     roomId: reader.readLongOrNull(offsets[6]),
     tool: _DrawingPointtoolValueEnumMap[reader.readByteOrNull(offsets[7])] ??
         DrawingTool.pen,
-    width: reader.readDouble(offsets[8]),
+    userId: reader.readStringOrNull(offsets[8]),
+    width: reader.readDouble(offsets[9]),
   );
   return object;
 }
@@ -165,6 +178,8 @@ P _drawingPointDeserializeProp<P>(
       return (_DrawingPointtoolValueEnumMap[reader.readByteOrNull(offset)] ??
           DrawingTool.pen) as P;
     case 8:
+      return (reader.readStringOrNull(offset)) as P;
+    case 9:
       return (reader.readDouble(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1065,6 +1080,159 @@ extension DrawingPointQueryFilter
     });
   }
 
+  QueryBuilder<DrawingPoint, DrawingPoint, QAfterFilterCondition>
+      userIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'userId',
+      ));
+    });
+  }
+
+  QueryBuilder<DrawingPoint, DrawingPoint, QAfterFilterCondition>
+      userIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'userId',
+      ));
+    });
+  }
+
+  QueryBuilder<DrawingPoint, DrawingPoint, QAfterFilterCondition> userIdEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'userId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DrawingPoint, DrawingPoint, QAfterFilterCondition>
+      userIdGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'userId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DrawingPoint, DrawingPoint, QAfterFilterCondition>
+      userIdLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'userId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DrawingPoint, DrawingPoint, QAfterFilterCondition> userIdBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'userId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DrawingPoint, DrawingPoint, QAfterFilterCondition>
+      userIdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'userId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DrawingPoint, DrawingPoint, QAfterFilterCondition>
+      userIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'userId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DrawingPoint, DrawingPoint, QAfterFilterCondition>
+      userIdContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'userId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DrawingPoint, DrawingPoint, QAfterFilterCondition> userIdMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'userId',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DrawingPoint, DrawingPoint, QAfterFilterCondition>
+      userIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'userId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<DrawingPoint, DrawingPoint, QAfterFilterCondition>
+      userIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'userId',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<DrawingPoint, DrawingPoint, QAfterFilterCondition> widthEqualTo(
     double value, {
     double epsilon = Query.epsilon,
@@ -1210,6 +1378,18 @@ extension DrawingPointQuerySortBy
     });
   }
 
+  QueryBuilder<DrawingPoint, DrawingPoint, QAfterSortBy> sortByUserId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'userId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<DrawingPoint, DrawingPoint, QAfterSortBy> sortByUserIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'userId', Sort.desc);
+    });
+  }
+
   QueryBuilder<DrawingPoint, DrawingPoint, QAfterSortBy> sortByWidth() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'width', Sort.asc);
@@ -1310,6 +1490,18 @@ extension DrawingPointQuerySortThenBy
     });
   }
 
+  QueryBuilder<DrawingPoint, DrawingPoint, QAfterSortBy> thenByUserId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'userId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<DrawingPoint, DrawingPoint, QAfterSortBy> thenByUserIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'userId', Sort.desc);
+    });
+  }
+
   QueryBuilder<DrawingPoint, DrawingPoint, QAfterSortBy> thenByWidth() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'width', Sort.asc);
@@ -1370,6 +1562,13 @@ extension DrawingPointQueryWhereDistinct
   QueryBuilder<DrawingPoint, DrawingPoint, QDistinct> distinctByTool() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'tool');
+    });
+  }
+
+  QueryBuilder<DrawingPoint, DrawingPoint, QDistinct> distinctByUserId(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'userId', caseSensitive: caseSensitive);
     });
   }
 
@@ -1435,6 +1634,12 @@ extension DrawingPointQueryProperty
   QueryBuilder<DrawingPoint, DrawingTool, QQueryOperations> toolProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'tool');
+    });
+  }
+
+  QueryBuilder<DrawingPoint, String?, QQueryOperations> userIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'userId');
     });
   }
 
