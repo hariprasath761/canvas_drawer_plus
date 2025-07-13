@@ -206,7 +206,7 @@ class DrawingRoomViewModel extends ChangeNotifier {
   }
 
   // Remove Drawing Point
-  Future<void> removeDrawingPoint(String roomId, int pointId) async {
+  Future<void> removeDrawingPoint(String roomId, String pointId) async {
     try {
       await _repository.removeDrawingPoint(roomId, pointId);
     } catch (e) {

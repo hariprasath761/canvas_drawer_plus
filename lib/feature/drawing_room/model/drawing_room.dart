@@ -5,7 +5,7 @@ part 'drawing_room.g.dart';
 
 @collection
 class DrawingRoom {
-   Id id;
+  Id id;
   final String roomId;
   final String roomName;
   final String createdBy;
@@ -70,7 +70,6 @@ class DrawingRoom {
       drawingPoints: points,
     );
   }
-
   // Copy with method
   DrawingRoom copyWith({
     Id? id,
@@ -168,11 +167,9 @@ class DrawingRoom {
     return copyWith(drawingPoints: points, lastModified: DateTime.now());
   }
 
-  List<DrawingPoint> getDrawingPointsAsRegular() {
-    return drawingPoints
-        .map((embedded) => embedded.toDrawingPoint(roomId: id))
-        .toList();
-  }
+  // List<DrawingPoint> getDrawingPointsAsRegular() {
+  //   return drawingPoints;
+  // }
 
   bool hasDrawingPoint(String pointId) {
     return drawingPoints.any((p) => p.pointId == pointId);

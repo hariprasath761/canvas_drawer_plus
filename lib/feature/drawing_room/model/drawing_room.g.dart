@@ -231,7 +231,9 @@ List<IsarLinkBase<dynamic>> _drawingRoomGetLinks(DrawingRoom object) {
 }
 
 void _drawingRoomAttach(
-    IsarCollection<dynamic> col, Id id, DrawingRoom object) {}
+    IsarCollection<dynamic> col, Id id, DrawingRoom object) {
+  object.id = id;
+}
 
 extension DrawingRoomQueryWhereSort
     on QueryBuilder<DrawingRoom, DrawingRoom, QWhere> {

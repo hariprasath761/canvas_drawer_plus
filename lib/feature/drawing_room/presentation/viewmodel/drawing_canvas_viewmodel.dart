@@ -80,7 +80,6 @@ class DrawingCanvasViewModel extends ChangeNotifier {
 
       // Start listening to drawings and room updates
       await _startListeningToDrawings();
-     
 
       _setState(DrawingCanvasState.idle);
     } catch (e) {
@@ -100,15 +99,13 @@ class DrawingCanvasViewModel extends ChangeNotifier {
     }
   }
 
- 
-
   // Drawing related methods
   void startDrawing(Offset position) {
     if (_currentUserId == null) return;
 
     _setState(DrawingCanvasState.drawing);
 
-    _currentDrawingPoint = DrawingPoint.create(
+    _currentDrawingPoint = EmbeddedDrawingPoint.create(
       offsets: [position],
       color: _selectedColor,
       width: _selectedWidth,
@@ -148,10 +145,14 @@ class DrawingCanvasViewModel extends ChangeNotifier {
     if (_currentDrawingPoint == null) return;
 
     try {
+      // Save the drawing point
       await _addDrawingPoint(_currentDrawingPoint!);
 
-      if (_currentUserId != null) {
+      // Update user's drawing history
+      if (_currentUserId != null &&
+          _currentUserId == _currentDrawingPoint?.userId) {
         _userDrawingHistory.add(_currentDrawingPoint!);
+        // Clear redo history when a new drawing is added
         _userUndoHistory.clear();
       }
 
@@ -188,9 +189,15 @@ class DrawingCanvasViewModel extends ChangeNotifier {
 
       final lastPoint = _userDrawingHistory.removeLast();
 
-      await _repository.removeDrawingPoint(roomId, lastPoint.id);
+      await _repository.removeDrawingPoint(roomId, lastPoint.pointId);
 
       _userUndoHistory.add(lastPoint);
+
+      // Update the local drawing points immediately for better UX
+      _drawingPoints =
+          _drawingPoints
+              .where((point) => point.pointId != lastPoint.pointId)
+              .toList();
 
       _setState(DrawingCanvasState.idle);
       notifyListeners();
@@ -213,6 +220,14 @@ class DrawingCanvasViewModel extends ChangeNotifier {
 
       // Add back to user's drawing history
       _userDrawingHistory.add(pointToRedo);
+
+      // Update local drawing points immediately for better UX
+      // Make sure we don't add duplicate points
+      if (!_drawingPoints.any(
+        (point) => point.pointId == pointToRedo.pointId,
+      )) {
+        _drawingPoints = [..._drawingPoints, pointToRedo];
+      }
 
       _setState(DrawingCanvasState.idle);
       notifyListeners();
@@ -248,6 +263,51 @@ class DrawingCanvasViewModel extends ChangeNotifier {
             (drawings) {
               _drawingPoints = drawings;
               _historyDrawingPoints = List.of(drawings);
+
+              // Update user drawing history based on current drawings
+              if (_currentUserId != null) {
+                final userDrawings =
+                    drawings
+                        .where((point) => point.userId == _currentUserId)
+                        .toList();
+
+                // Initialize user drawing history if empty
+                if (_userDrawingHistory.isEmpty) {
+                  _userDrawingHistory = List.of(userDrawings);
+                } else {
+                  // Synchronize drawing history with current drawings
+                  // by keeping only points that still exist in the current drawings
+                  _userDrawingHistory =
+                      _userDrawingHistory
+                          .where(
+                            (historyPoint) => drawings.any(
+                              (point) => point.pointId == historyPoint.pointId,
+                            ),
+                          )
+                          .toList();
+
+                  // Add any new user points that aren't already in the history
+                  for (final point in userDrawings) {
+                    if (!_userDrawingHistory.any(
+                      (p) => p.pointId == point.pointId,
+                    )) {
+                      _userDrawingHistory.add(point);
+                    }
+                  }
+                }
+
+                // Also update undo history to remove points that no longer exist
+                _userUndoHistory =
+                    _userUndoHistory
+                        .where(
+                          (undoPoint) =>
+                              !drawings.any(
+                                (point) => point.pointId == undoPoint.pointId,
+                              ),
+                        )
+                        .toList();
+              }
+
               notifyListeners();
             },
             onError: (error) {
@@ -281,9 +341,8 @@ class DrawingCanvasViewModel extends ChangeNotifier {
   // Clean up all subscriptions
   void _stopListening() {
     _drawingSubscription?.cancel();
-   
+
     _drawingSubscription = null;
-   
   }
 
   @override

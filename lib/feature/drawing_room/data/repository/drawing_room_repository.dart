@@ -17,6 +17,7 @@ abstract class DrawingRoomRepository {
     required Color color,
     required double width,
     required DrawingTool tool,
+    String? userId,
   });
 
   Future<void> addDrawings({
@@ -41,7 +42,7 @@ abstract class DrawingRoomRepository {
   // Backward compatibility methods
   Stream<List<DrawingPoint>> getDrawingUpdates(String roomId);
   Future<void> addDrawingPoint(String roomId, DrawingPoint point);
-  Future<void> removeDrawingPoint(String roomId, int pointId);
+  Future<void> removeDrawingPoint(String roomId, String pointId);
   List<DrawingPoint> getUserDrawingPoints(
     List<DrawingPoint> allPoints,
     String userId,
@@ -88,12 +89,14 @@ class DrawingRoomRepositoryImpl implements DrawingRoomRepository {
     required Color color,
     required double width,
     required DrawingTool tool,
+    String? userId,
   }) async {
     final point = EmbeddedDrawingPoint.create(
       offsets: offsets,
       color: color,
       width: width,
       tool: tool,
+      userId: userId,
     );
 
     // Always save locally first
@@ -236,9 +239,8 @@ class DrawingRoomRepositoryImpl implements DrawingRoomRepository {
   @override
   Stream<List<DrawingPoint>> getDrawingUpdates(String roomId) {
     return getRoomUpdates(roomId).map((room) {
-      return room.drawingPoints.map((embeddedPoint) {
-        return embeddedPoint.toDrawingPoint(roomId: roomId.hashCode);
-      }).toList();
+      return room
+          .drawingPoints; // Already EmbeddedDrawingPoints, just return them
     });
   }
 
@@ -250,15 +252,16 @@ class DrawingRoomRepositoryImpl implements DrawingRoomRepository {
       color: point.color,
       width: point.width,
       tool: point.tool,
+      userId: point.userId,
     );
   }
 
   @override
-  Future<void> removeDrawingPoint(String roomId, int pointId) async {
-    await _localDataSource.removeDrawingPoint(roomId, pointId.toString());
+  Future<void> removeDrawingPoint(String roomId, String pointId) async {
+    await _localDataSource.removeDrawingPoint(roomId, pointId);
 
     try {
-      await _remoteDataSource.removeDrawingPoint(roomId, pointId.toString());
+      await _remoteDataSource.removeDrawingPoint(roomId, pointId);
     } catch (e) {
       // Mark for sync later
       print('Failed to remove drawing point remotely: $e');
