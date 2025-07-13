@@ -20,99 +20,105 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         backgroundColor: Colors.deepPurple,
         foregroundColor: Colors.white,
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // Profile Section
-          _buildSectionHeader('Profile'),
-          _buildSettingsTile(
-            icon: Icons.person,
-            title: 'View Profile',
-            subtitle: 'See your profile information',
-            onTap: () {
-              Navigator.pushNamed(context, AppRouteName.userProfile);
-            },
-          ),
-          _buildSettingsTile(
-            icon: Icons.edit,
-            title: 'Edit Profile',
-            subtitle: 'Update your profile information',
-            onTap: () {
-              Navigator.pushNamed(context, AppRouteName.editProfile);
-            },
-          ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              // Profile Section
+              _buildSectionHeader('Profile'),
+              _buildSettingsTile(
+                icon: Icons.person,
+                title: 'View Profile',
+                subtitle: 'See your profile information',
+                onTap: () {
+                  Navigator.pushNamed(context, AppRouteName.userProfile);
+                },
+              ),
+              _buildSettingsTile(
+                icon: Icons.edit,
+                title: 'Edit Profile',
+                subtitle: 'Update your profile information',
+                onTap: () {
+                  Navigator.pushNamed(context, AppRouteName.editProfile);
+                },
+              ),
 
-          const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-          // Account Section
-          _buildSectionHeader('Account'),
-          _buildSettingsTile(
-            icon: Icons.lock,
-            title: 'Change Password',
-            subtitle: 'Update your account password',
-            onTap: () {
-              _showChangePasswordDialog();
-            },
-          ),
-          _buildSettingsTile(
-            icon: Icons.email,
-            title: 'Email Settings',
-            subtitle: 'Manage your email preferences',
-            onTap: () {
-              // TODO: Implement email settings
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Email settings coming soon')),
-              );
-            },
-          ),
+              // Account Section
+              _buildSectionHeader('Account'),
+              _buildSettingsTile(
+                icon: Icons.lock,
+                title: 'Change Password',
+                subtitle: 'Update your account password',
+                onTap: () {
+                  _showChangePasswordDialog();
+                },
+              ),
+              _buildSettingsTile(
+                icon: Icons.email,
+                title: 'Email Settings',
+                subtitle: 'Manage your email preferences',
+                onTap: () {
+                  // TODO: Implement email settings
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Email settings coming soon')),
+                  );
+                },
+              ),
 
-          const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-          // Security Section
-          _buildSectionHeader('Security'),
-          _buildSettingsTile(
-            icon: Icons.security,
-            title: 'Privacy Settings',
-            subtitle: 'Manage your privacy preferences',
-            onTap: () {
-              // TODO: Implement privacy settings
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Privacy settings coming soon')),
-              );
-            },
-          ),
-          _buildSettingsTile(
-            icon: Icons.delete_forever,
-            title: 'Delete Account',
-            subtitle: 'Permanently delete your account',
-            onTap: () {
-              _showDeleteAccountDialog();
-            },
-            isDestructive: true,
-          ),
+              // Security Section
+              _buildSectionHeader('Security'),
+              _buildSettingsTile(
+                icon: Icons.security,
+                title: 'Privacy Settings',
+                subtitle: 'Manage your privacy preferences',
+                onTap: () {
+                  // TODO: Implement privacy settings
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Privacy settings coming soon'),
+                    ),
+                  );
+                },
+              ),
+              _buildSettingsTile(
+                icon: Icons.delete_forever,
+                title: 'Delete Account',
+                subtitle: 'Permanently delete your account',
+                onTap: () {
+                  _showDeleteAccountDialog();
+                },
+                isDestructive: true,
+              ),
 
-          const SizedBox(height: 40),
+              const SizedBox(height: 40),
 
-          // Logout Button
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: _showLogoutConfirmation,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+              // Logout Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _showLogoutConfirmation,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text(
+                    'Sign Out',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
-              child: const Text(
-                'Sign Out',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

@@ -5,9 +5,150 @@ part 'drawing_point.g.dart';
 
 enum DrawingTool { pen, eraser, circle, rectangle, square }
 
+// Embedded version for storing within DrawingRoom
+@embedded
+class EmbeddedDrawingPoint {
+  final String pointId; // Unique identifier for each point
+  final List<double> offsetsX;
+  final List<double> offsetsY;
+  final int colorValue;
+  final double width;
+  @enumerated
+  final DrawingTool tool;
+  final DateTime createdAt;
+  final String? userId;
+
+  EmbeddedDrawingPoint({
+    this.pointId = '',
+    this.offsetsX = const [],
+    this.offsetsY = const [],
+    this.colorValue = 0,
+    this.width = 2.0,
+    this.tool = DrawingTool.pen,
+    this.userId,
+  }) : createdAt = DateTime.now();
+
+  // Named constructor for easy creation
+  EmbeddedDrawingPoint.create({
+    String? pointId,
+    List<Offset> offsets = const [],
+    Color color = Colors.black,
+    this.width = 2,
+    this.tool = DrawingTool.pen,
+    this.userId,
+    DateTime? createdAt,
+  }) : pointId =
+           pointId ??
+           '${DateTime.now().millisecondsSinceEpoch}_${userId ?? 'anonymous'}',
+       offsetsX = offsets.map((offset) => offset.dx).toList(),
+       offsetsY = offsets.map((offset) => offset.dy).toList(),
+       colorValue = color.value,
+       createdAt = createdAt ?? DateTime.now();
+
+  @ignore
+  List<Offset> get offsets {
+    if (offsetsX.length != offsetsY.length) return [];
+    return List.generate(
+      offsetsX.length,
+      (index) => Offset(offsetsX[index], offsetsY[index]),
+    );
+  }
+
+  @ignore
+  Color get color => Color(colorValue);
+
+  @ignore
+  Rect get boundingRect {
+    if (offsets.length < 2) return Rect.zero;
+    final start = offsets.first;
+    final end = offsets.last;
+    return Rect.fromPoints(start, end);
+  }
+
+  bool get isShape => [
+    DrawingTool.circle,
+    DrawingTool.rectangle,
+    DrawingTool.square,
+  ].contains(tool);
+
+  // Convert to JSON for Firebase
+  Map<String, dynamic> toJson() {
+    return {
+      'pointId': pointId,
+      'offsetsX': offsetsX,
+      'offsetsY': offsetsY,
+      'colorValue': colorValue,
+      'width': width,
+      'tool': tool.index,
+      'createdAt': createdAt.toIso8601String(),
+      'userId': userId,
+    };
+  }
+
+  // Create from JSON (Firebase)
+  factory EmbeddedDrawingPoint.fromJson(Map<String, dynamic> json) {
+    final point = EmbeddedDrawingPoint(
+      pointId: json['pointId'] ?? '',
+      offsetsX: List<double>.from(json['offsetsX'] ?? []),
+      offsetsY: List<double>.from(json['offsetsY'] ?? []),
+      colorValue: json['colorValue'] ?? 0,
+      width: (json['width'] ?? 2.0).toDouble(),
+      tool: DrawingTool.values[json['tool'] ?? 0],
+      userId: json['userId'],
+    );
+
+    // Manually set createdAt from JSON if available
+    if (json['createdAt'] != null) {
+      return EmbeddedDrawingPoint(
+        pointId: point.pointId,
+        offsetsX: point.offsetsX,
+        offsetsY: point.offsetsY,
+        colorValue: point.colorValue,
+        width: point.width,
+        tool: point.tool,
+        userId: point.userId,
+      );
+    }
+
+    return point;
+  }
+
+  // Convert to regular DrawingPoint (for compatibility)
+  DrawingPoint toDrawingPoint({int? roomId}) {
+    return DrawingPoint(
+      pointId: pointId,
+      offsetsX: offsetsX,
+      offsetsY: offsetsY,
+      colorValue: colorValue,
+      width: width,
+      tool: tool,
+      createdAt: createdAt,
+      roomId: roomId,
+      userId: userId,
+    );
+  }
+
+  @override
+  String toString() {
+    return 'EmbeddedDrawingPoint(pointId: $pointId, tool: $tool, color: $color, width: $width, points: ${offsets.length})';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is EmbeddedDrawingPoint && other.pointId == pointId;
+  }
+
+  @override
+  int get hashCode => pointId.hashCode;
+}
+
 @collection
 class DrawingPoint {
   final Id id;
+  
+  // Point ID from embedded point (for Firebase/room sync)
+  final String? pointId;
 
   // Store Offset coordinates as separate lists
   final List<double> offsetsX;
@@ -35,6 +176,7 @@ class DrawingPoint {
   // Constructor with all required fields
   DrawingPoint({
     this.id = Isar.autoIncrement,
+    this.pointId,
     required this.offsetsX,
     required this.offsetsY,
     required this.colorValue,
@@ -48,6 +190,7 @@ class DrawingPoint {
   // Named constructor for easy creation from your original model
   DrawingPoint.create({
     this.id = Isar.autoIncrement,
+    this.pointId,
     List<Offset> offsets = const [],
     Color color = Colors.black,
     this.width = 2,
@@ -75,6 +218,7 @@ class DrawingPoint {
   // CopyWith method for immutable-like updates
   DrawingPoint copyWith({
     Id? id,
+    String? pointId,
     List<Offset>? offsets,
     Color? color,
     double? width,
@@ -86,6 +230,7 @@ class DrawingPoint {
     final newOffsets = offsets ?? this.offsets;
     return DrawingPoint(
       id: id ?? this.id,
+      pointId: pointId ?? this.pointId,
       offsetsX: newOffsets.map((offset) => offset.dx).toList(),
       offsetsY: newOffsets.map((offset) => offset.dy).toList(),
       colorValue: color?.value ?? this.colorValue,
@@ -119,6 +264,7 @@ class DrawingPoint {
 
     return DrawingPoint(
       id: id,
+      pointId: pointId,
       offsetsX: newOffsetsX,
       offsetsY: newOffsetsY,
       colorValue: colorValue,
@@ -141,6 +287,7 @@ class DrawingPoint {
 
     return DrawingPoint(
       id: id,
+      pointId: pointId,
       offsetsX: newOffsetsX,
       offsetsY: newOffsetsY,
       colorValue: colorValue,

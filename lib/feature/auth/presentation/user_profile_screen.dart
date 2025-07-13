@@ -95,14 +95,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         title: const Text('Profile'),
         backgroundColor: Colors.deepPurple,
         foregroundColor: Colors.white,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed:
-              () => Navigator.pushReplacementNamed(
-                context,
-                AppRouteName.roomList,
-              ),
-        ),
+
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
@@ -129,203 +122,205 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               ? const Center(child: Text('No user data found'))
               : Padding(
                 padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Profile Header
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: Colors.deepPurple.shade50,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.deepPurple.shade100),
-                      ),
-                      child: Column(
-                        children: [
-                          CircleAvatar(
-                            radius: 50,
-                            backgroundColor: Colors.deepPurple,
-                            child: Text(
-                              _userModel!.displayName.isNotEmpty
-                                  ? _userModel!.displayName[0].toUpperCase()
-                                  : 'U',
-                              style: const TextStyle(
-                                fontSize: 32,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Profile Header
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: Colors.deepPurple.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.deepPurple.shade100),
+                        ),
+                        child: Column(
+                          children: [
+                            CircleAvatar(
+                              radius: 50,
+                              backgroundColor: Colors.deepPurple,
+                              child: Text(
+                                _userModel!.displayName.isNotEmpty
+                                    ? _userModel!.displayName[0].toUpperCase()
+                                    : 'U',
+                                style: const TextStyle(
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            _userModel!.displayName,
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.deepPurple,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            _userModel!.email,
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 32),
-
-                    // User Information
-                    const Text(
-                      'Account Information',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.deepPurple,
-                      ),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    _buildInfoCard(
-                      icon: Icons.person,
-                      title: 'Full Name',
-                      value: _userModel!.displayName,
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    _buildInfoCard(
-                      icon: Icons.email,
-                      title: 'Email',
-                      value: _userModel!.email,
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    _buildInfoCard(
-                      icon: Icons.calendar_today,
-                      title: 'Member Since',
-                      value: _formatDate(_userModel!.createdAt),
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    _buildInfoCard(
-                      icon: Icons.access_time,
-                      title: 'Last Sign In',
-                      value: _formatDate(_userModel!.lastSignIn),
-                    ),
-
-                    const SizedBox(height: 32),
-
-                    // Quick Actions
-                    const Text(
-                      'Quick Actions',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.deepPurple,
-                      ),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // Drawing Rooms Button
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.pushReplacementNamed(
-                            context,
-                            AppRouteName.roomList,
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.room, size: 20),
-                            SizedBox(width: 8),
+                            const SizedBox(height: 16),
                             Text(
-                              'My Drawing Rooms',
+                              _userModel!.displayName,
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.deepPurple,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              _userModel!.email,
                               style: TextStyle(
                                 fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                                color: Colors.grey[600],
                               ),
                             ),
                           ],
                         ),
                       ),
-                    ),
 
-                    const Spacer(),
+                      const SizedBox(height: 32),
 
-                    // Edit Profile Button
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.pushNamed(
-                            context,
-                            AppRouteName.editProfile,
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.deepPurple,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
+                      // User Information
+                      const Text(
+                        'Account Information',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.deepPurple,
                         ),
-                        child: const Text(
-                          'Edit Profile',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      _buildInfoCard(
+                        icon: Icons.person,
+                        title: 'Full Name',
+                        value: _userModel!.displayName,
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      _buildInfoCard(
+                        icon: Icons.email,
+                        title: 'Email',
+                        value: _userModel!.email,
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      _buildInfoCard(
+                        icon: Icons.calendar_today,
+                        title: 'Member Since',
+                        value: _formatDate(_userModel!.createdAt),
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      _buildInfoCard(
+                        icon: Icons.access_time,
+                        title: 'Last Sign In',
+                        value: _formatDate(_userModel!.lastSignIn),
+                      ),
+
+                      const SizedBox(height: 32),
+
+                      // Quick Actions
+                      const Text(
+                        'Quick Actions',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.deepPurple,
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Drawing Rooms Button
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.pushReplacementNamed(
+                              context,
+                              AppRouteName.roomList,
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.room, size: 20),
+                              SizedBox(width: 8),
+                              Text(
+                                'My Drawing Rooms',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
-                    ),
 
-                    const SizedBox(height: 16),
+                      const SizedBox(height: 16),
 
-                    // Sign Out Button
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _showLogoutConfirmation,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                      // Edit Profile Button
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.pushNamed(
+                              context,
+                              AppRouteName.editProfile,
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.deepPurple,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                           ),
-                        ),
-                        child: const Text(
-                          'Sign Out',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                          child: const Text(
+                            'Edit Profile',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+
+                      const SizedBox(height: 16),
+
+                      // Sign Out Button
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _showLogoutConfirmation,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Text(
+                            'Sign Out',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
     );

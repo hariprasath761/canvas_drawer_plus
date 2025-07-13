@@ -1,10 +1,11 @@
 import 'package:isar/isar.dart';
+import 'drawing_point.dart';
 
 part 'drawing_room.g.dart';
 
 @collection
 class DrawingRoom {
-  final Id id;
+   Id id;
   final String roomId;
   final String roomName;
   final String createdBy;
@@ -14,6 +15,9 @@ class DrawingRoom {
   final bool isActive;
   final String? password; // Optional password for private rooms
   final int maxParticipants;
+
+  // Embedded drawing points - matches Firebase structure
+  final List<EmbeddedDrawingPoint> drawingPoints;
 
   DrawingRoom({
     this.id = Isar.autoIncrement,
@@ -26,6 +30,7 @@ class DrawingRoom {
     this.isActive = true,
     this.password,
     this.maxParticipants = 10,
+    this.drawingPoints = const [],
   });
 
   // Convert to JSON for Firebase
@@ -40,12 +45,18 @@ class DrawingRoom {
       'isActive': isActive,
       'password': password,
       'maxParticipants': maxParticipants,
-      'drawingPoints': [], // Initialize empty drawing points array
+      'drawingPoints': drawingPoints.map((point) => point.toJson()).toList(),
     };
   }
 
   // Create from JSON (Firebase)
   factory DrawingRoom.fromJson(Map<String, dynamic> json) {
+    final drawingPointsData = json['drawingPoints'] as List<dynamic>? ?? [];
+    final points =
+        drawingPointsData
+            .map((pointData) => EmbeddedDrawingPoint.fromJson(pointData))
+            .toList();
+
     return DrawingRoom(
       roomId: json['roomId'] ?? '',
       roomName: json['roomName'] ?? '',
@@ -56,6 +67,7 @@ class DrawingRoom {
       isActive: json['isActive'] ?? true,
       password: json['password'],
       maxParticipants: json['maxParticipants'] ?? 10,
+      drawingPoints: points,
     );
   }
 
@@ -71,6 +83,7 @@ class DrawingRoom {
     bool? isActive,
     String? password,
     int? maxParticipants,
+    List<EmbeddedDrawingPoint>? drawingPoints,
   }) {
     return DrawingRoom(
       id: id ?? this.id,
@@ -83,6 +96,7 @@ class DrawingRoom {
       isActive: isActive ?? this.isActive,
       password: password ?? this.password,
       maxParticipants: maxParticipants ?? this.maxParticipants,
+      drawingPoints: drawingPoints ?? this.drawingPoints,
     );
   }
 
@@ -114,5 +128,62 @@ class DrawingRoom {
       );
     }
     return this;
+  }
+
+  // Helper methods for drawing points
+  DrawingRoom addDrawingPoint(EmbeddedDrawingPoint point) {
+    return copyWith(
+      drawingPoints: [...drawingPoints, point],
+      lastModified: DateTime.now(),
+    );
+  }
+
+  DrawingRoom addDrawingPoints(List<EmbeddedDrawingPoint> points) {
+    if (points.isEmpty) return this;
+
+    // Filter out duplicate points based on pointId
+    final existingIds = drawingPoints.map((p) => p.pointId).toSet();
+    final newPoints =
+        points.where((p) => !existingIds.contains(p.pointId)).toList();
+
+    if (newPoints.isEmpty) return this;
+
+    return copyWith(
+      drawingPoints: [...drawingPoints, ...newPoints],
+      lastModified: DateTime.now(),
+    );
+  }
+
+  DrawingRoom removeDrawingPoint(String pointId) {
+    final updatedPoints =
+        drawingPoints.where((p) => p.pointId != pointId).toList();
+    return copyWith(drawingPoints: updatedPoints, lastModified: DateTime.now());
+  }
+
+  DrawingRoom clearDrawingPoints() {
+    return copyWith(drawingPoints: [], lastModified: DateTime.now());
+  }
+
+  DrawingRoom replaceDrawingPoints(List<EmbeddedDrawingPoint> points) {
+    return copyWith(drawingPoints: points, lastModified: DateTime.now());
+  }
+
+  List<DrawingPoint> getDrawingPointsAsRegular() {
+    return drawingPoints
+        .map((embedded) => embedded.toDrawingPoint(roomId: id))
+        .toList();
+  }
+
+  bool hasDrawingPoint(String pointId) {
+    return drawingPoints.any((p) => p.pointId == pointId);
+  }
+
+  // Get drawing point by ID
+  EmbeddedDrawingPoint? getDrawingPoint(String pointId) {
+    try {
+      return drawingPoints.firstWhere((p) => p.pointId == pointId);
+    } catch (e) {
+      return null;
+    }
   }
 }

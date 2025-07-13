@@ -1,11 +1,12 @@
-import 'package:canvas_drawer_plus/feature/drawing_room/presentation/drawing_room_screen.dart';
-import 'package:canvas_drawer_plus/feature/drawing_room/presentation/room_list_screen.dart';
+
 import 'package:canvas_drawer_plus/feature/auth/presentation/sign_in_screen.dart';
 import 'package:canvas_drawer_plus/feature/auth/presentation/sign_up_screen.dart';
 import 'package:canvas_drawer_plus/feature/auth/presentation/auth_wrapper.dart';
 import 'package:canvas_drawer_plus/feature/auth/presentation/user_profile_screen.dart';
 import 'package:canvas_drawer_plus/feature/auth/presentation/edit_profile_screen.dart';
 import 'package:canvas_drawer_plus/feature/auth/presentation/profile_settings_screen.dart';
+import 'package:canvas_drawer_plus/feature/drawing_room/presentation/screen/drawing_room_list_screen.dart';
+import 'package:canvas_drawer_plus/feature/drawing_room/presentation/screen/drawing_room_screen_mvvm.dart';
 import 'package:flutter/material.dart';
 import '/core/route/app_route_name.dart';
 
@@ -50,14 +51,14 @@ class AppRoute {
 
       case AppRouteName.roomList:
         return MaterialPageRoute(
-          builder: (_) => const RoomListScreen(),
+          builder: (_) => const DrawingRoomListScreen(),
           settings: settings,
         );
 
       case AppRouteName.drawingRoom:
         final roomId = settings.arguments as String?;
         return MaterialPageRoute(
-          builder: (_) => DrawingRoomScreen(roomId: roomId),
+          builder: (_) => DrawingRoomScreenMVVM(roomId: roomId),
           settings: settings,
         );
 

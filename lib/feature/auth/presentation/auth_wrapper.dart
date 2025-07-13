@@ -1,7 +1,7 @@
+import 'package:canvas_drawer_plus/feature/drawing_room/presentation/screen/drawing_room_list_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../presentation/sign_in_screen.dart';
-import '../../drawing_room/presentation/room_list_screen.dart';
 import '../service/auth_service.dart';
 
 class AuthWrapper extends StatelessWidget {
@@ -19,12 +19,9 @@ class AuthWrapper extends StatelessWidget {
             body: Center(child: CircularProgressIndicator()),
           );
         }
-
         if (snapshot.hasData) {
-          // User is signed in
-          return const RoomListScreen();
+          return const DrawingRoomListScreen();
         } else {
-          // User is not signed in
           return const SignInScreen();
         }
       },

@@ -27,48 +27,54 @@ const DrawingRoomSchema = CollectionSchema(
       name: r'createdBy',
       type: IsarType.string,
     ),
-    r'isActive': PropertySchema(
+    r'drawingPoints': PropertySchema(
       id: 2,
+      name: r'drawingPoints',
+      type: IsarType.objectList,
+      target: r'EmbeddedDrawingPoint',
+    ),
+    r'isActive': PropertySchema(
+      id: 3,
       name: r'isActive',
       type: IsarType.bool,
     ),
     r'isFull': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'isFull',
       type: IsarType.bool,
     ),
     r'isPasswordProtected': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'isPasswordProtected',
       type: IsarType.bool,
     ),
     r'lastModified': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'lastModified',
       type: IsarType.dateTime,
     ),
     r'maxParticipants': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'maxParticipants',
       type: IsarType.long,
     ),
     r'participants': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'participants',
       type: IsarType.stringList,
     ),
     r'password': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'password',
       type: IsarType.string,
     ),
     r'roomId': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'roomId',
       type: IsarType.string,
     ),
     r'roomName': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'roomName',
       type: IsarType.string,
     )
@@ -80,7 +86,7 @@ const DrawingRoomSchema = CollectionSchema(
   idName: r'id',
   indexes: {},
   links: {},
-  embeddedSchemas: {},
+  embeddedSchemas: {r'EmbeddedDrawingPoint': EmbeddedDrawingPointSchema},
   getId: _drawingRoomGetId,
   getLinks: _drawingRoomGetLinks,
   attach: _drawingRoomAttach,
@@ -94,6 +100,15 @@ int _drawingRoomEstimateSize(
 ) {
   var bytesCount = offsets.last;
   bytesCount += 3 + object.createdBy.length * 3;
+  bytesCount += 3 + object.drawingPoints.length * 3;
+  {
+    final offsets = allOffsets[EmbeddedDrawingPoint]!;
+    for (var i = 0; i < object.drawingPoints.length; i++) {
+      final value = object.drawingPoints[i];
+      bytesCount +=
+          EmbeddedDrawingPointSchema.estimateSize(value, offsets, allOffsets);
+    }
+  }
   bytesCount += 3 + object.participants.length * 3;
   {
     for (var i = 0; i < object.participants.length; i++) {
@@ -120,15 +135,21 @@ void _drawingRoomSerialize(
 ) {
   writer.writeDateTime(offsets[0], object.createdAt);
   writer.writeString(offsets[1], object.createdBy);
-  writer.writeBool(offsets[2], object.isActive);
-  writer.writeBool(offsets[3], object.isFull);
-  writer.writeBool(offsets[4], object.isPasswordProtected);
-  writer.writeDateTime(offsets[5], object.lastModified);
-  writer.writeLong(offsets[6], object.maxParticipants);
-  writer.writeStringList(offsets[7], object.participants);
-  writer.writeString(offsets[8], object.password);
-  writer.writeString(offsets[9], object.roomId);
-  writer.writeString(offsets[10], object.roomName);
+  writer.writeObjectList<EmbeddedDrawingPoint>(
+    offsets[2],
+    allOffsets,
+    EmbeddedDrawingPointSchema.serialize,
+    object.drawingPoints,
+  );
+  writer.writeBool(offsets[3], object.isActive);
+  writer.writeBool(offsets[4], object.isFull);
+  writer.writeBool(offsets[5], object.isPasswordProtected);
+  writer.writeDateTime(offsets[6], object.lastModified);
+  writer.writeLong(offsets[7], object.maxParticipants);
+  writer.writeStringList(offsets[8], object.participants);
+  writer.writeString(offsets[9], object.password);
+  writer.writeString(offsets[10], object.roomId);
+  writer.writeString(offsets[11], object.roomName);
 }
 
 DrawingRoom _drawingRoomDeserialize(
@@ -140,14 +161,21 @@ DrawingRoom _drawingRoomDeserialize(
   final object = DrawingRoom(
     createdAt: reader.readDateTime(offsets[0]),
     createdBy: reader.readString(offsets[1]),
+    drawingPoints: reader.readObjectList<EmbeddedDrawingPoint>(
+          offsets[2],
+          EmbeddedDrawingPointSchema.deserialize,
+          allOffsets,
+          EmbeddedDrawingPoint(),
+        ) ??
+        const [],
     id: id,
-    isActive: reader.readBoolOrNull(offsets[2]) ?? true,
-    lastModified: reader.readDateTime(offsets[5]),
-    maxParticipants: reader.readLongOrNull(offsets[6]) ?? 10,
-    participants: reader.readStringList(offsets[7]) ?? [],
-    password: reader.readStringOrNull(offsets[8]),
-    roomId: reader.readString(offsets[9]),
-    roomName: reader.readString(offsets[10]),
+    isActive: reader.readBoolOrNull(offsets[3]) ?? true,
+    lastModified: reader.readDateTime(offsets[6]),
+    maxParticipants: reader.readLongOrNull(offsets[7]) ?? 10,
+    participants: reader.readStringList(offsets[8]) ?? [],
+    password: reader.readStringOrNull(offsets[9]),
+    roomId: reader.readString(offsets[10]),
+    roomName: reader.readString(offsets[11]),
   );
   return object;
 }
@@ -164,22 +192,30 @@ P _drawingRoomDeserializeProp<P>(
     case 1:
       return (reader.readString(offset)) as P;
     case 2:
-      return (reader.readBoolOrNull(offset) ?? true) as P;
+      return (reader.readObjectList<EmbeddedDrawingPoint>(
+            offset,
+            EmbeddedDrawingPointSchema.deserialize,
+            allOffsets,
+            EmbeddedDrawingPoint(),
+          ) ??
+          const []) as P;
     case 3:
-      return (reader.readBool(offset)) as P;
+      return (reader.readBoolOrNull(offset) ?? true) as P;
     case 4:
       return (reader.readBool(offset)) as P;
     case 5:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 6:
-      return (reader.readLongOrNull(offset) ?? 10) as P;
+      return (reader.readDateTime(offset)) as P;
     case 7:
-      return (reader.readStringList(offset) ?? []) as P;
+      return (reader.readLongOrNull(offset) ?? 10) as P;
     case 8:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readStringList(offset) ?? []) as P;
     case 9:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 10:
+      return (reader.readString(offset)) as P;
+    case 11:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -466,6 +502,95 @@ extension DrawingRoomQueryFilter
         property: r'createdBy',
         value: '',
       ));
+    });
+  }
+
+  QueryBuilder<DrawingRoom, DrawingRoom, QAfterFilterCondition>
+      drawingPointsLengthEqualTo(int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'drawingPoints',
+        length,
+        true,
+        length,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<DrawingRoom, DrawingRoom, QAfterFilterCondition>
+      drawingPointsIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'drawingPoints',
+        0,
+        true,
+        0,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<DrawingRoom, DrawingRoom, QAfterFilterCondition>
+      drawingPointsIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'drawingPoints',
+        0,
+        false,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<DrawingRoom, DrawingRoom, QAfterFilterCondition>
+      drawingPointsLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'drawingPoints',
+        0,
+        true,
+        length,
+        include,
+      );
+    });
+  }
+
+  QueryBuilder<DrawingRoom, DrawingRoom, QAfterFilterCondition>
+      drawingPointsLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'drawingPoints',
+        length,
+        include,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<DrawingRoom, DrawingRoom, QAfterFilterCondition>
+      drawingPointsLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'drawingPoints',
+        lower,
+        includeLower,
+        upper,
+        includeUpper,
+      );
     });
   }
 
@@ -1313,7 +1438,14 @@ extension DrawingRoomQueryFilter
 }
 
 extension DrawingRoomQueryObject
-    on QueryBuilder<DrawingRoom, DrawingRoom, QFilterCondition> {}
+    on QueryBuilder<DrawingRoom, DrawingRoom, QFilterCondition> {
+  QueryBuilder<DrawingRoom, DrawingRoom, QAfterFilterCondition>
+      drawingPointsElement(FilterQuery<EmbeddedDrawingPoint> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.object(q, r'drawingPoints');
+    });
+  }
+}
 
 extension DrawingRoomQueryLinks
     on QueryBuilder<DrawingRoom, DrawingRoom, QFilterCondition> {}
@@ -1676,6 +1808,13 @@ extension DrawingRoomQueryProperty
   QueryBuilder<DrawingRoom, String, QQueryOperations> createdByProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'createdBy');
+    });
+  }
+
+  QueryBuilder<DrawingRoom, List<EmbeddedDrawingPoint>, QQueryOperations>
+      drawingPointsProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'drawingPoints');
     });
   }
 

@@ -1,8 +1,9 @@
+import 'package:canvas_drawer_plus/feature/drawing_room/data/repository/drawing_room_repository.dart';
+import 'package:canvas_drawer_plus/feature/drawing_room/presentation/viewmodel/drawing_room_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../model/drawing_room.dart';
-import '../service/drawing_room_service.dart';
-import '../../../main.dart';
+import 'package:provider/provider.dart';
+import '../../model/drawing_room.dart';
 
 class DrawingRoomSettingsDialog extends StatefulWidget {
   final String roomId;
@@ -15,20 +16,21 @@ class DrawingRoomSettingsDialog extends StatefulWidget {
 }
 
 class _DrawingRoomSettingsDialogState extends State<DrawingRoomSettingsDialog> {
-  late DrawingRoomService _roomService;
+  late DrawingRoomRepository _roomService;
   DrawingRoom? _room;
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _roomService = DrawingRoomService(isar);
+
+    _roomService = context.read<DrawingRoomViewModel>().repository;
     _loadRoomDetails();
   }
 
   Future<void> _loadRoomDetails() async {
     try {
-      final room = await _roomService.getRoomDetails(widget.roomId);
+      final room = await _roomService.getRoom(widget.roomId);
       setState(() {
         _room = room;
         _isLoading = false;
@@ -138,36 +140,37 @@ class _DrawingRoomSettingsDialogState extends State<DrawingRoomSettingsDialog> {
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
-                  Container(
+                  ConstrainedBox(
                     constraints: const BoxConstraints(maxHeight: 120),
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: _room!.participants.length,
-                      itemBuilder: (context, index) {
-                        final participant = _room!.participants[index];
-                        final isCreator = participant == _room!.createdBy;
-                        return ListTile(
-                          dense: true,
-                          leading: CircleAvatar(
-                            radius: 16,
-                            child: Text(
-                              participant.substring(0, 1).toUpperCase(),
-                            ),
-                          ),
-                          title: Text(
-                            participant,
-                            style: const TextStyle(fontSize: 12),
-                          ),
-                          trailing:
-                              isCreator
-                                  ? const Icon(
-                                    Icons.star,
-                                    color: Colors.orange,
-                                    size: 16,
-                                  )
-                                  : null,
-                        );
-                      },
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children:
+                            _room!.participants.map((participant) {
+                              final isCreator = participant == _room!.createdBy;
+                              return ListTile(
+                                dense: true,
+                                contentPadding: EdgeInsets.zero,
+                                leading: CircleAvatar(
+                                  radius: 16,
+                                  child: Text(
+                                    participant.substring(0, 1).toUpperCase(),
+                                  ),
+                                ),
+                                title: Text(
+                                  participant,
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                                trailing:
+                                    isCreator
+                                        ? const Icon(
+                                          Icons.star,
+                                          color: Colors.orange,
+                                          size: 16,
+                                        )
+                                        : null,
+                              );
+                            }).toList(),
+                      ),
                     ),
                   ),
                 ],
