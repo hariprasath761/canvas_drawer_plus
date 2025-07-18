@@ -1,17 +1,16 @@
+import 'package:canvas_drawer_plus/consts.dart';
 import 'package:canvas_drawer_plus/core/theme/material_theme.dart';
-import 'package:canvas_drawer_plus/feature/drawing_room/model/drawing_point.dart';
 import 'package:canvas_drawer_plus/feature/drawing_room/model/drawing_room.dart';
 import 'package:canvas_drawer_plus/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:isar/isar.dart';
 import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
-
 import 'core/route/app_route.dart';
 import 'core/route/app_route_name.dart';
-import 'core/theme/app_theme.dart';
 import 'feature/drawing_room/data/repository/drawing_room_repository.dart';
 import 'feature/drawing_room/data/datasource/drawing_room_remote_datasource.dart';
 import 'feature/drawing_room/data/datasource/drawing_room_local_datasource.dart';
@@ -25,6 +24,7 @@ late Isar isar;
 final logger = Logger();
 
 void main() async {
+  Gemini.init(apiKey: googleApiKey);
   WidgetsFlutterBinding.ensureInitialized();
   final dir = await getApplicationDocumentsDirectory();
   isar = await Isar.open([DrawingRoomSchema], directory: dir.path);

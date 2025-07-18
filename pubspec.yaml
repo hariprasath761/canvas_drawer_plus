@@ -43,6 +43,11 @@ dependencies:
   logger: ^2.6.0
   provider: ^6.1.2
   get_it: ^8.0.3
+  http: ^1.4.0
+  shared_preferences: ^2.5.3
+  fluttertoast: ^8.2.12
+  flutter_gemini: ^3.0.0
+  speech_to_text: ^7.2.0
 
 dev_dependencies:
   # The following adds the Flutter Driver framework to your project

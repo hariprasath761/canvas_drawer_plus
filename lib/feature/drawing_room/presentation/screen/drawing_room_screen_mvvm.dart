@@ -136,6 +136,10 @@ class _DrawingRoomScreenMVVMState extends State<DrawingRoomScreenMVVM> {
                 // Width Slider
                 _buildWidthSlider(canvasViewModel),
 
+                // AI Model Initialization Overlay
+                if (canvasViewModel.isModelInitializing)
+                  _buildModelInitializationOverlay(canvasViewModel),
+
                 if (canvasViewModel.isLoading)
                   Container(
                     color: Colors.black.withOpacity(0.3),
@@ -143,7 +147,22 @@ class _DrawingRoomScreenMVVMState extends State<DrawingRoomScreenMVVM> {
                   ),
               ],
             ),
-            floatingActionButton: _buildFloatingActionButtons(canvasViewModel),
+            floatingActionButton: Stack(
+              children: [
+                // Undo/Redo buttons
+                Positioned(
+                  bottom: 16,
+                  right: 16,
+                  child: _buildUndoRedoButtons(canvasViewModel),
+                ),
+                // AI expandable menu
+                Positioned(
+                  bottom: 80,
+                  right: 16,
+                  child: _buildAIExpandableMenu(canvasViewModel),
+                ),
+              ],
+            ),
           );
         },
       ),
@@ -329,9 +348,9 @@ class _DrawingRoomScreenMVVMState extends State<DrawingRoomScreenMVVM> {
     );
   }
 
-  Widget _buildFloatingActionButtons(DrawingCanvasViewModel viewModel) {
+  Widget _buildUndoRedoButtons(DrawingCanvasViewModel viewModel) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
+      mainAxisSize: MainAxisSize.min,
       children: [
         FloatingActionButton(
           heroTag: "Undo",
@@ -347,6 +366,96 @@ class _DrawingRoomScreenMVVMState extends State<DrawingRoomScreenMVVM> {
           child: const Icon(Icons.redo),
         ),
       ],
+    );
+  }
+
+  Widget _buildAIExpandableMenu(DrawingCanvasViewModel viewModel) {
+    return _AIExpandableMenu(viewModel: viewModel);
+  }
+
+  Widget _buildModelInitializationOverlay(DrawingCanvasViewModel viewModel) {
+    return Container(
+      color: Colors.black.withOpacity(0.7),
+      child: Center(
+        child: Container(
+          margin: const EdgeInsets.all(32),
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 10,
+                spreadRadius: 2,
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.smart_toy_outlined,
+                size: 48,
+                color: Colors.purple[600],
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'AI Drawing Assistant',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[800],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                viewModel.modelLoadingMessage ?? 'Preparing AI model...',
+                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              if (viewModel.modelDownloadProgress != null)
+                Column(
+                  children: [
+                    LinearProgressIndicator(
+                      value: viewModel.modelDownloadProgress,
+                      backgroundColor: Colors.grey[300],
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Colors.purple[600]!,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '${(viewModel.modelDownloadProgress! * 100).toInt()}%',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                )
+              else
+                CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    Colors.purple[600]!,
+                  ),
+                ),
+              const SizedBox(height: 16),
+              Text(
+                'This may take a few minutes on first use',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[500],
+                  fontStyle: FontStyle.italic,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -469,5 +578,230 @@ class DrawingPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
     return true;
+  }
+}
+
+class _AIExpandableMenu extends StatefulWidget {
+  final DrawingCanvasViewModel viewModel;
+
+  const _AIExpandableMenu({required this.viewModel});
+
+  @override
+  State<_AIExpandableMenu> createState() => _AIExpandableMenuState();
+}
+
+class _AIExpandableMenuState extends State<_AIExpandableMenu>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _expandAnimation;
+  bool _isExpanded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _expandAnimation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.elasticOut,
+    );
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  void _toggleMenu() {
+    setState(() {
+      _isExpanded = !_isExpanded;
+      if (_isExpanded) {
+        _animationController.forward();
+      } else {
+        _animationController.reverse();
+      }
+    });
+  }
+
+  void showSpeechToDrawingDialog() {
+    _toggleMenu();
+    showDialog(
+      context: context,
+      builder:
+          (context) => ChangeNotifierProvider.value(
+            value: widget.viewModel,
+            child: Consumer<DrawingCanvasViewModel>(
+              builder: (context, model, child) {
+                return AlertDialog(
+                  title: const Text('Speech to Drawing'),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              model.lastWords.isNotEmpty
+                                  ? 'Recognized: ${model.lastWords}'
+                                  : 'No speech recognized yet.',
+                            ),
+                          ),
+                          if (model.lastWords.isNotEmpty)
+                            IconButton(
+                              onPressed: () {
+                                model.clearLastWords();
+                              },
+                              icon: Icon(Icons.close, color: Colors.grey[600]),
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  actions: [
+                    if (model.lastWords.isNotEmpty)
+                      TextButton(
+                        onPressed: () {
+                          model.convertTextToDrawing(model.lastWords);
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text('Draw'),
+                      ),
+                    IconButton(
+                      onPressed: () {
+                        if (widget.viewModel.speechToText.isListening) {
+                          widget.viewModel.stopListeningAudio();
+                        } else {
+                          widget.viewModel.startListeningAudio();
+                        }
+                      },
+                      icon: Icon(
+                        widget.viewModel.speechToText.isListening
+                            ? Icons.mic_off
+                            : Icons.mic,
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+    );
+  }
+
+  void _showTextToDrawingDialog() {
+    final textController = TextEditingController();
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Text to Drawing'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Enter text to convert to drawing:'),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: textController,
+                  decoration: const InputDecoration(
+                    hintText: 'e.g., "Draw a house with a tree"',
+                    border: OutlineInputBorder(),
+                  ),
+                  maxLines: 3,
+                  onSubmitted: (value) {
+                    Navigator.of(context).pop();
+                    widget.viewModel.convertTextToDrawing(value);
+                    _toggleMenu();
+                  },
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  widget.viewModel.convertTextToDrawing(textController.text);
+                  _toggleMenu();
+                },
+                child: const Text('Generate'),
+              ),
+            ],
+          ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        // Menu items
+        if (_isExpanded) ...[
+          ScaleTransition(
+            scale: _expandAnimation,
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              child: FloatingActionButton.extended(
+                heroTag: "TextToDrawing",
+                onPressed: _showTextToDrawingDialog,
+                backgroundColor: Colors.blue,
+                icon: const Icon(Icons.text_fields),
+                label: const Text('Text to Drawing'),
+              ),
+            ),
+          ),
+
+          ScaleTransition(
+            scale: _expandAnimation,
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              child: FloatingActionButton.extended(
+                heroTag: "SpeechToDrawing",
+                onPressed: showSpeechToDrawingDialog,
+                backgroundColor: Colors.green,
+                icon: const Icon(Icons.mic),
+                label: const Text('Speech to Drawing'),
+              ),
+            ),
+          ),
+
+          ScaleTransition(
+            scale: _expandAnimation,
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              child: FloatingActionButton.extended(
+                heroTag: "AISuggest",
+                onPressed: () {
+                  widget.viewModel.enhanceDrawingWithAI();
+                  _toggleMenu();
+                },
+                backgroundColor: Colors.purple,
+                icon: const Icon(Icons.auto_fix_high),
+                label: const Text('AI Complete'),
+              ),
+            ),
+          ),
+        ],
+
+        FloatingActionButton(
+          heroTag: "AI",
+          onPressed: _toggleMenu,
+          backgroundColor: _isExpanded ? Colors.red : Colors.purple,
+          child: AnimatedRotation(
+            turns: _isExpanded ? 0.125 : 0,
+            duration: const Duration(milliseconds: 200),
+            child: Icon(_isExpanded ? Icons.close : Icons.smart_toy),
+          ),
+        ),
+      ],
+    );
   }
 }

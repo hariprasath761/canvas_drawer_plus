@@ -1,6 +1,16 @@
 import 'dart:async';
+import 'dart:convert';
+import 'package:canvas_drawer_plus/feature/ai_service/ai_config.dart';
+import 'package:canvas_drawer_plus/feature/ai_service/openrouter_service.dart';
+import 'package:canvas_drawer_plus/feature/gemma/download_model.dart';
+import 'package:canvas_drawer_plus/feature/gemma/downloader_datasource.dart';
+import 'package:canvas_drawer_plus/main.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_gemini/flutter_gemini.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:speech_to_text/speech_recognition_result.dart';
+import 'package:speech_to_text/speech_to_text.dart';
 import '../../data/repository/drawing_room_repository.dart';
 import '../../model/drawing_point.dart';
 import '../../model/drawing_room.dart';
@@ -17,6 +27,14 @@ class DrawingCanvasViewModel extends ChangeNotifier {
   }) : _repository = repository {
     initialize();
   }
+
+  final _downloaderDataSource = GemmaDownloaderDataSource(
+    model: DownloadModel(
+      modelUrl:
+          'https://huggingface.co/google/gemma-3n-E4B-it-litert-preview/resolve/main/gemma-3n-E4B-it-int4.task',
+      modelFilename: 'gemma-3n-E4B-it-int4.task',
+    ),
+  );
 
   DrawingCanvasState _state = DrawingCanvasState.idle;
   String? _errorMessage;
@@ -59,7 +77,27 @@ class DrawingCanvasViewModel extends ChangeNotifier {
   bool get canUndo => _userDrawingHistory.isNotEmpty;
   bool get canRedo => _userUndoHistory.isNotEmpty;
 
-  // Available colors for the palette
+  bool get isModelInitializing => _isModelInitializing;
+  double? get modelDownloadProgress => _modelDownloadProgress;
+  String? get modelLoadingMessage => _modelLoadingMessage;
+
+  // AI Model initialization state
+  bool _isModelInitializing = false;
+  double? _modelDownloadProgress;
+  String? _modelLoadingMessage;
+
+  SpeechToText speechToText = SpeechToText();
+  bool speechEnabled = false;
+  String lastWords = '';
+
+  // OpenRouter service for enhanced AI capabilities
+  OpenRouterService? _openRouterService;
+
+  // Initialize OpenRouter service with API key
+  void initializeOpenRouter(String apiKey) {
+    _openRouterService = OpenRouterService(apiKey: apiKey);
+  }
+
   final List<Color> availableColors = [
     Colors.black,
     Colors.red,
@@ -81,9 +119,433 @@ class DrawingCanvasViewModel extends ChangeNotifier {
       // Start listening to drawings and room updates
       await _startListeningToDrawings();
 
+      _initSpeech();
+
+      initializeOpenRouter(AIConfig.openRouterApiKey);
+
       _setState(DrawingCanvasState.idle);
     } catch (e) {
       _setError('Failed to initialize canvas: ${e.toString()}');
+    }
+  }
+
+  void clearLastWords() {
+    lastWords = '';
+    notifyListeners();
+  }
+
+  /// This has to happen only once per app
+  void _initSpeech() async {
+    speechEnabled = await speechToText.initialize();
+  }
+
+  /// Each time to start a speech recognition session
+  void startListeningAudio() async {
+    await speechToText.listen(onResult: _onSpeechResult);
+    notifyListeners();
+  }
+
+  void stopListeningAudio() async {
+    await speechToText.stop();
+    notifyListeners();
+  }
+
+  void _onSpeechResult(SpeechRecognitionResult result) {
+    lastWords = result.recognizedWords;
+    notifyListeners();
+  }
+
+  // Public method to trigger AI generation (can be called from UI)
+  Future<void> enhanceDrawingWithAI() async {
+    if (_drawingPoints.isEmpty) {
+      Fluttertoast.showToast(
+        msg: 'Please draw something first before using AI enhancement',
+        toastLength: Toast.LENGTH_LONG,
+      );
+      return;
+    }
+
+    final result = await generateDrawingFromGemma();
+
+    if (result != null && result.isNotEmpty) {
+      Fluttertoast.showToast(
+        msg: 'AI enhanced your drawing with ${result.length} new elements!',
+        toastLength: Toast.LENGTH_LONG,
+      );
+    } else {
+      Fluttertoast.showToast(
+        msg: 'AI could not enhance the drawing. Try drawing more elements.',
+        toastLength: Toast.LENGTH_LONG,
+      );
+    }
+  }
+
+  Future<List<DrawingPoint>?> generateDrawingFromGemma() async {
+    _setState(DrawingCanvasState.loading);
+
+    final drawingDescription = _convertDrawingPointsToDescription(
+      _drawingPoints,
+    );
+
+    // Create a comprehensive prompt for Gemma
+    final prompt = _createDrawingPrompt(drawingDescription);
+
+    String? response;
+
+    try {
+      response = await analyzeDrawingImageWithOpenRouter(
+        analysisPrompt: prompt,
+        model: OpenRouterModels.geminiPro,
+      );
+      // apiCall = await gemini.prompt(parts: [Part.text(prompt)]);
+    } catch (e) {
+      _setError('Failed to get response from Gemma: ${e.toString()}');
+      _setState(DrawingCanvasState.idle);
+      notifyListeners();
+      return null;
+    }
+
+    if (response == null) {
+      _setError('Failed to get response from Gemma');
+      _setState(DrawingCanvasState.idle);
+      notifyListeners();
+      return null;
+    }
+
+    logger.i('Gemma response: $response');
+    if (response != null && response!.isNotEmpty) {
+      final generatedPoints = _parseGemmaResponseToDrawingPoints(response!);
+
+      if (generatedPoints.isNotEmpty) {
+        // Add the generated points to the canvas
+        for (final point in generatedPoints) {
+          await _addDrawingPoint(point);
+        }
+
+        // Update local drawing points immediately
+        _drawingPoints = [..._drawingPoints, ...generatedPoints];
+
+        // Add to user's drawing history
+        if (_currentUserId != null) {
+          _userDrawingHistory.addAll(generatedPoints);
+          _userUndoHistory
+              .clear(); // Clear redo history when new AI drawings are added
+        }
+      }
+
+      Fluttertoast.showToast(
+        msg: 'Created drawing ',
+        toastLength: Toast.LENGTH_LONG,
+      );
+
+      _setState(DrawingCanvasState.idle);
+      notifyListeners();
+
+      return generatedPoints;
+    }
+
+    _setState(DrawingCanvasState.idle);
+    notifyListeners();
+
+    return null;
+  }
+
+  Future<void> convertTextToDrawing(String text) async {
+    logger.i('Converting text to drawing: $text');
+    if (text.trim().isEmpty) {
+      Fluttertoast.showToast(
+        msg: 'Please enter some text to convert to drawing',
+        toastLength: Toast.LENGTH_LONG,
+      );
+      return;
+    }
+
+    _setState(DrawingCanvasState.loading);
+
+    final prompt = _createTextToDrawingPrompt(text);
+
+    String? response;
+
+    try {
+      response = await analyzeDrawingImageWithOpenRouter(
+        analysisPrompt: prompt,
+        model: OpenRouterModels.geminiPro,
+      );
+      // apiCall = await gemini.prompt(parts: [Part.text(prompt)]);
+    } catch (e) {
+      _setError('Failed to get response from Gemma: ${e.toString()}');
+      _setState(DrawingCanvasState.idle);
+      notifyListeners();
+    }
+
+    if (response == null) {
+      _setError('Failed to get response from Gemma');
+      _setState(DrawingCanvasState.idle);
+      notifyListeners();
+    }
+
+    logger.i('Gemma response: $response');
+    if (response != null && response!.isNotEmpty) {
+      final generatedPoints = _parseGemmaResponseToDrawingPoints(response!);
+
+      if (generatedPoints.isNotEmpty) {
+        // Add the generated points to the canvas
+        for (final point in generatedPoints) {
+          await _addDrawingPoint(point);
+        }
+
+        // Update local drawing points immediately
+        _drawingPoints = [..._drawingPoints, ...generatedPoints];
+
+        // Add to user's drawing history
+        if (_currentUserId != null) {
+          _userDrawingHistory.addAll(generatedPoints);
+          _userUndoHistory
+              .clear(); // Clear redo history when new AI drawings are added
+        }
+      }
+    }
+  }
+
+  // Public method for speech to drawing conversion (placeholder)
+  Future<void> convertSpeechToDrawing() async {
+    Fluttertoast.showToast(
+      msg: 'Speech to drawing feature coming soon!',
+      toastLength: Toast.LENGTH_LONG,
+    );
+    // TODO: Implement speech recognition and conversion to drawing
+    // This would typically involve:
+    // 1. Recording audio input
+    // 2. Converting speech to text using speech recognition
+    // 3. Using the text-to-drawing conversion method above
+  }
+
+  String _createTextToDrawingPrompt(String text) {
+    return """
+You are an AI assistant that creates drawings based on text descriptions. The user wants to draw: "$text"
+
+Please create drawing elements that represent this text visually. Respond ONLY in the following JSON format:
+
+{
+  "identified_object": "what you're drawing based on the text",
+  "confidence": "high/medium/low",
+  "suggestions": [
+    {
+      "type": "rectangle/circle/pen",
+      "color": "black/red/blue/green/brown/amber",
+      "x1": 100,
+      "y1": 150,
+      "x2": 200,
+      "y2": 250,
+      "description": "what this element represents"
+    }
+  ]
+}
+
+For pen tool, provide multiple points as an array:
+{
+  "type": "pen",
+  "color": "black",
+  "points": [{"x": 100, "y": 150}, {"x": 105, "y": 155}, {"x": 110, "y": 160}],
+  "description": "what this line represents"
+}
+
+Create a complete drawing that visually represents "$text". Use appropriate shapes and lines to form recognizable objects. Place elements in a logical arrangement on the canvas (use coordinates between 50-800 for x and 100-600 for y).
+""";
+  }
+
+  String _convertDrawingPointsToDescription(List<DrawingPoint> points) {
+    if (points.isEmpty) {
+      return "No drawing points available";
+    }
+
+    final buffer = StringBuffer();
+
+    buffer.writeln(
+      "In my flutter application I've made a canvas screen for drawing. where the canvas coordinates are stored in the format of the following json: ${points.first.toJson()}",
+    );
+
+    buffer.writeln(
+      "Current drawing contains ${points.length} drawing elements combined it together makes a single room drawing now need to enhance the drawing to next level with this points:",
+    );
+
+    for (int i = 0; i < points.length; i++) {
+      final point = points[i];
+      final tool = point.tool.toString().split('.').last;
+      final color = _colorToName(point.color);
+
+      buffer.writeln(
+        "${i + 1}. $tool in $color color with ${point.offsets.length} points",
+      );
+
+      buffer.writeln(
+        "The following points are used for this drawing element: in the format of (x, y)",
+      );
+
+      for (var offset in point.offsets) {
+        buffer.writeln("   (${offset.dx.toInt()}, ${offset.dy.toInt()})");
+      }
+    }
+
+    return buffer.toString();
+  }
+
+  String _createDrawingPrompt(String drawingDescription) {
+    return """
+You are an AI assistant that helps complete and enhance drawings. Based on the current drawing elements provided, identify what the user might be trying to draw (like animals, fruits, objects, etc.) and provide suggestions to complete or enhance the drawing.
+
+$drawingDescription
+
+Please analyze this drawing and:
+1. Identify what you think the user is trying to draw (animal, fruit, object, etc.)
+2. Suggest additional drawing elements to complete or enhance the drawing
+3. Respond ONLY in the following JSON format:
+
+{
+  "identified_object": "name of what you think is being drawn",
+  "confidence": "high/medium/low",
+  "suggestions": [
+    {
+      "type": "rectangle/circle/pen",
+      "color": "black/red/blue/green/brown/amber",
+      "x1": 100,
+      "y1": 150,
+      "x2": 200,
+      "y2": 250,
+      "description": "what this element represents"
+    }
+  ]
+}
+
+For pen tool, provide multiple points as an array:
+{
+  "type": "pen",
+  "color": "black",
+  "points": [{"x": 100, "y": 150}, {"x": 105, "y": 155}, {"x": 110, "y": 160}],
+  "description": "what this line represents"
+}
+
+Important: Provide coordinates that work well with the existing drawing elements. Use colors from: black, red, blue, green, brown, amber.
+""";
+  }
+
+  List<DrawingPoint> _parseGemmaResponseToDrawingPoints(String response) {
+    try {
+      // Extract JSON from response if it contains other text
+      final jsonStart = response.indexOf('{');
+      final jsonEnd = response.lastIndexOf('}');
+
+      if (jsonStart == -1 || jsonEnd == -1) {
+        print('No valid JSON found in response');
+        return [];
+      }
+
+      final jsonString = response.substring(jsonStart, jsonEnd + 1);
+      final data = json.decode(jsonString) as Map<String, dynamic>;
+
+      final suggestions = data['suggestions'] as List<dynamic>? ?? [];
+      final identifiedObject =
+          data['identified_object'] as String? ?? 'unknown';
+
+      print('AI identified: $identifiedObject');
+
+      final drawingPoints = <DrawingPoint>[];
+
+      for (final suggestion in suggestions) {
+        final suggestionMap = suggestion as Map<String, dynamic>;
+        final type = suggestionMap['type'] as String;
+        final colorName = suggestionMap['color'] as String;
+        final color = _nameToColor(colorName);
+
+        DrawingPoint? drawingPoint;
+
+        switch (type.toLowerCase()) {
+          case 'rectangle':
+            final x1 = (suggestionMap['x1'] as num).toDouble();
+            final y1 = (suggestionMap['y1'] as num).toDouble();
+            final x2 = (suggestionMap['x2'] as num).toDouble();
+            final y2 = (suggestionMap['y2'] as num).toDouble();
+
+            drawingPoint = EmbeddedDrawingPoint.create(
+              offsets: [Offset(x1, y1), Offset(x2, y2)],
+              color: color,
+              tool: DrawingTool.rectangle,
+              userId: _currentUserId,
+            );
+            break;
+
+          case 'circle':
+            final x1 = (suggestionMap['x1'] as num).toDouble();
+            final y1 = (suggestionMap['y1'] as num).toDouble();
+            final x2 = (suggestionMap['x2'] as num).toDouble();
+            final y2 = (suggestionMap['y2'] as num).toDouble();
+
+            drawingPoint = EmbeddedDrawingPoint.create(
+              offsets: [Offset(x1, y1), Offset(x2, y2)],
+              color: color,
+              tool: DrawingTool.circle,
+              userId: _currentUserId,
+            );
+            break;
+
+          case 'pen':
+            final points = suggestionMap['points'] as List<dynamic>? ?? [];
+            final offsets =
+                points.map((point) {
+                  final pointMap = point as Map<String, dynamic>;
+                  return Offset(
+                    (pointMap['x'] as num).toDouble(),
+                    (pointMap['y'] as num).toDouble(),
+                  );
+                }).toList();
+
+            if (offsets.isNotEmpty) {
+              drawingPoint = EmbeddedDrawingPoint.create(
+                offsets: offsets,
+                color: color,
+                tool: DrawingTool.pen,
+                userId: _currentUserId,
+              );
+            }
+            break;
+        }
+
+        if (drawingPoint != null) {
+          drawingPoints.add(drawingPoint);
+        }
+      }
+
+      return drawingPoints;
+    } catch (e) {
+      print('Error parsing Gemma response: $e');
+      return [];
+    }
+  }
+
+  String _colorToName(Color color) {
+    if (color.value == Colors.black.value) return 'black';
+    if (color.value == Colors.red.value) return 'red';
+    if (color.value == Colors.blue.value) return 'blue';
+    if (color.value == Colors.green.value) return 'green';
+    if (color.value == Colors.brown.value) return 'brown';
+    if (color.value == Colors.amber.value) return 'amber';
+    return 'black'; // default
+  }
+
+  Color _nameToColor(String colorName) {
+    switch (colorName.toLowerCase()) {
+      case 'red':
+        return Colors.red;
+      case 'blue':
+        return Colors.blue;
+      case 'green':
+        return Colors.green;
+      case 'brown':
+        return Colors.brown;
+      case 'amber':
+        return Colors.amber;
+      default:
+        return Colors.black;
     }
   }
 
@@ -336,6 +798,382 @@ class DrawingCanvasViewModel extends ChangeNotifier {
   void _setError(String message) {
     _errorMessage = message;
     _setState(DrawingCanvasState.error);
+  }
+
+  // OpenRouter AI Enhancement Methods
+
+  /// Analyze drawing with text description using OpenRouter API
+  Future<void> analyzeDrawingWithOpenRouter({
+    required String analysisPrompt,
+    String model = OpenRouterModels.claude35Sonnet,
+  }) async {
+    if (_openRouterService == null) {
+      Fluttertoast.showToast(
+        msg: 'OpenRouter API not initialized. Please set API key first.',
+        toastLength: Toast.LENGTH_LONG,
+      );
+      return;
+    }
+
+    if (_drawingPoints.isEmpty) {
+      Fluttertoast.showToast(
+        msg: 'Please draw something first before using AI analysis',
+        toastLength: Toast.LENGTH_LONG,
+      );
+      return;
+    }
+
+    _setState(DrawingCanvasState.loading);
+
+    try {
+      // Convert current drawing points to a descriptive format
+      final drawingDescription = _convertDrawingPointsToDescription(
+        _drawingPoints,
+      );
+
+      final fullPrompt = '''
+$analysisPrompt
+
+Current drawing contains:
+$drawingDescription
+
+Please analyze this drawing and provide insights about what the user might be trying to create.
+''';
+
+      final response = await _openRouterService!.sendTextMessage(
+        message: fullPrompt,
+        model: model,
+        temperature: 0.7,
+        maxTokens: 1000,
+      );
+
+      Fluttertoast.showToast(
+        msg: 'AI Analysis: ${response.text}',
+        toastLength: Toast.LENGTH_LONG,
+      );
+
+      logger.i('OpenRouter Analysis: ${response.text}');
+    } catch (e) {
+      _setError('Failed to analyze drawing: ${e.toString()}');
+    } finally {
+      _setState(DrawingCanvasState.idle);
+    }
+  }
+
+  /// Enhance drawing with OpenRouter suggestions
+  Future<void> enhanceDrawingWithOpenRouter({
+    String model = OpenRouterModels.claude35Sonnet,
+  }) async {
+    if (_openRouterService == null) {
+      Fluttertoast.showToast(
+        msg: 'OpenRouter API not initialized. Please set API key first.',
+        toastLength: Toast.LENGTH_LONG,
+      );
+      return;
+    }
+
+    if (_drawingPoints.isEmpty) {
+      Fluttertoast.showToast(
+        msg: 'Please draw something first before using AI enhancement',
+        toastLength: Toast.LENGTH_LONG,
+      );
+      return;
+    }
+
+    _setState(DrawingCanvasState.loading);
+
+    try {
+      // Convert current drawing points to a descriptive format
+      final drawingDescription = _convertDrawingPointsToDescription(
+        _drawingPoints,
+      );
+
+      final prompt = '''
+You are an AI assistant that helps complete and enhance drawings. Based on the current drawing elements provided, identify what the user might be trying to draw and provide suggestions to complete or enhance the drawing.
+
+Current drawing contains:
+$drawingDescription
+
+Please analyze this drawing and:
+1. Identify what you think the user is trying to draw
+2. Suggest additional drawing elements to complete or enhance the drawing
+3. Respond ONLY in the following JSON format:
+
+{
+  "identified_object": "name of what you think is being drawn",
+  "confidence": "high/medium/low",
+  "suggestions": [
+    {
+      "type": "rectangle/circle/pen",
+      "color": "black/red/blue/green/brown/amber",
+      "x1": 100,
+      "y1": 150,
+      "x2": 200,
+      "y2": 250,
+      "description": "what this element represents"
+    }
+  ]
+}
+
+For pen tool, provide multiple points as an array:
+{
+  "type": "pen",
+  "color": "black",
+  "points": [{"x": 100, "y": 150}, {"x": 105, "y": 155}, {"x": 110, "y": 160}],
+  "description": "what this line represents"
+}
+
+Important: Use colors from: black, red, blue, green, brown, amber. Provide coordinates between 50-800 for x and 100-600 for y.
+''';
+
+      final response = await _openRouterService!.sendTextMessage(
+        message: prompt,
+        model: model,
+        temperature: 0.8,
+        maxTokens: 1500,
+      );
+
+      logger.i('OpenRouter Enhancement Response: ${response.text}');
+
+      // Parse the response and convert to DrawingPoints
+      final generatedPoints = _parseOpenRouterResponseToDrawingPoints(
+        response.text,
+      );
+
+      if (generatedPoints.isNotEmpty) {
+        // Add the generated points to the canvas
+        for (final point in generatedPoints) {
+          await _addDrawingPoint(point);
+        }
+
+        // Update local drawing points immediately
+        _drawingPoints = [..._drawingPoints, ...generatedPoints];
+
+        // Add to user's drawing history
+        if (_currentUserId != null) {
+          _userDrawingHistory.addAll(generatedPoints);
+          _userUndoHistory.clear();
+        }
+
+        Fluttertoast.showToast(
+          msg:
+              'AI enhanced your drawing with ${generatedPoints.length} new elements!',
+          toastLength: Toast.LENGTH_LONG,
+        );
+      } else {
+        Fluttertoast.showToast(
+          msg: 'AI could not enhance the drawing. Try drawing more elements.',
+          toastLength: Toast.LENGTH_LONG,
+        );
+      }
+    } catch (e) {
+      _setError('Failed to enhance drawing with OpenRouter: ${e.toString()}');
+    } finally {
+      _setState(DrawingCanvasState.idle);
+    }
+  }
+
+  /// Convert text to drawing using OpenRouter API
+  Future<void> convertTextToDrawingWithOpenRouter({
+    required String text,
+    String model = OpenRouterModels.claude35Sonnet,
+  }) async {
+    if (_openRouterService == null) {
+      Fluttertoast.showToast(
+        msg: 'OpenRouter API not initialized. Please set API key first.',
+        toastLength: Toast.LENGTH_LONG,
+      );
+      return;
+    }
+
+    if (text.trim().isEmpty) {
+      Fluttertoast.showToast(
+        msg: 'Please enter some text to convert to drawing',
+        toastLength: Toast.LENGTH_LONG,
+      );
+      return;
+    }
+
+    _setState(DrawingCanvasState.loading);
+
+    try {
+      final prompt = _createTextToDrawingPrompt(text);
+
+      final response = await _openRouterService!.sendTextMessage(
+        message: prompt,
+        model: model,
+        temperature: 0.7,
+        maxTokens: 1500,
+      );
+
+      logger.i('OpenRouter Text-to-Drawing Response: ${response.text}');
+
+      // Parse the response and convert to DrawingPoints
+      final generatedPoints = _parseOpenRouterResponseToDrawingPoints(
+        response.text,
+      );
+
+      if (generatedPoints.isNotEmpty) {
+        // Add the generated points to the canvas
+        for (final point in generatedPoints) {
+          await _addDrawingPoint(point);
+        }
+
+        // Update local drawing points immediately
+        _drawingPoints = [..._drawingPoints, ...generatedPoints];
+
+        // Add to user's drawing history
+        if (_currentUserId != null) {
+          _userDrawingHistory.addAll(generatedPoints);
+          _userUndoHistory.clear();
+        }
+
+        Fluttertoast.showToast(
+          msg:
+              'Created drawing from text: "${text.length > 20 ? text.substring(0, 20) + "..." : text}"',
+          toastLength: Toast.LENGTH_LONG,
+        );
+      } else {
+        Fluttertoast.showToast(
+          msg: 'Could not create drawing from the provided text',
+          toastLength: Toast.LENGTH_LONG,
+        );
+      }
+    } catch (e) {
+      _setError(
+        'Failed to convert text to drawing with OpenRouter: ${e.toString()}',
+      );
+    } finally {
+      _setState(DrawingCanvasState.idle);
+    }
+  }
+
+  /// Analyze drawing with image using OpenRouter API (when canvas is exported as image)
+  Future<String?> analyzeDrawingImageWithOpenRouter({
+    required String analysisPrompt,
+    String model = OpenRouterModels.claude35Sonnet,
+  }) async {
+    if (_openRouterService == null) {
+      Fluttertoast.showToast(
+        msg: 'OpenRouter API not initialized. Please set API key first.',
+        toastLength: Toast.LENGTH_LONG,
+      );
+      return null;
+    }
+
+    _setState(DrawingCanvasState.loading);
+
+    try {
+      final response = await _openRouterService!.sendMessageWithImage(
+        message: analysisPrompt,
+        model: model,
+        temperature: 0.7,
+        maxTokens: 1000,
+      );
+
+      logger.i('OpenRouter Image Analysis: ${response.text}');
+
+      return response.text;
+    } catch (e) {
+      _setError('Failed to analyze drawing image: ${e.toString()}');
+      return null;
+    } finally {
+      _setState(DrawingCanvasState.idle);
+    }
+  }
+
+  /// Parse OpenRouter response to drawing points (similar to Gemma parsing)
+  List<DrawingPoint> _parseOpenRouterResponseToDrawingPoints(String response) {
+    try {
+      // Extract JSON from response if it contains other text
+      final jsonStart = response.indexOf('{');
+      final jsonEnd = response.lastIndexOf('}');
+
+      if (jsonStart == -1 || jsonEnd == -1) {
+        logger.w('No valid JSON found in OpenRouter response');
+        return [];
+      }
+
+      final jsonString = response.substring(jsonStart, jsonEnd + 1);
+      final data = json.decode(jsonString) as Map<String, dynamic>;
+
+      final suggestions = data['suggestions'] as List<dynamic>? ?? [];
+      final identifiedObject =
+          data['identified_object'] as String? ?? 'unknown';
+
+      logger.i('OpenRouter identified: $identifiedObject');
+
+      final drawingPoints = <DrawingPoint>[];
+
+      for (final suggestion in suggestions) {
+        final suggestionMap = suggestion as Map<String, dynamic>;
+        final type = suggestionMap['type'] as String;
+        final colorName = suggestionMap['color'] as String;
+        final color = _nameToColor(colorName);
+
+        DrawingPoint? drawingPoint;
+
+        switch (type.toLowerCase()) {
+          case 'rectangle':
+            final x1 = (suggestionMap['x1'] as num).toDouble();
+            final y1 = (suggestionMap['y1'] as num).toDouble();
+            final x2 = (suggestionMap['x2'] as num).toDouble();
+            final y2 = (suggestionMap['y2'] as num).toDouble();
+
+            drawingPoint = EmbeddedDrawingPoint.create(
+              offsets: [Offset(x1, y1), Offset(x2, y2)],
+              color: color,
+              tool: DrawingTool.rectangle,
+              userId: _currentUserId,
+            );
+            break;
+
+          case 'circle':
+            final x1 = (suggestionMap['x1'] as num).toDouble();
+            final y1 = (suggestionMap['y1'] as num).toDouble();
+            final x2 = (suggestionMap['x2'] as num).toDouble();
+            final y2 = (suggestionMap['y2'] as num).toDouble();
+
+            drawingPoint = EmbeddedDrawingPoint.create(
+              offsets: [Offset(x1, y1), Offset(x2, y2)],
+              color: color,
+              tool: DrawingTool.circle,
+              userId: _currentUserId,
+            );
+            break;
+
+          case 'pen':
+            final points = suggestionMap['points'] as List<dynamic>? ?? [];
+            final offsets =
+                points.map((point) {
+                  final pointMap = point as Map<String, dynamic>;
+                  return Offset(
+                    (pointMap['x'] as num).toDouble(),
+                    (pointMap['y'] as num).toDouble(),
+                  );
+                }).toList();
+
+            if (offsets.isNotEmpty) {
+              drawingPoint = EmbeddedDrawingPoint.create(
+                offsets: offsets,
+                color: color,
+                tool: DrawingTool.pen,
+                userId: _currentUserId,
+              );
+            }
+            break;
+        }
+
+        if (drawingPoint != null) {
+          drawingPoints.add(drawingPoint);
+        }
+      }
+
+      return drawingPoints;
+    } catch (e) {
+      logger.e('Error parsing OpenRouter response: $e');
+      return [];
+    }
   }
 
   // Clean up all subscriptions

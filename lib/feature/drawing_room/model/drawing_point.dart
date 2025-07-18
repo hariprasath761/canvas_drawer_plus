@@ -8,8 +8,8 @@ enum DrawingTool { pen, eraser, circle, rectangle, square }
 typedef DrawingPoint = EmbeddedDrawingPoint;
 
 @embedded
-class EmbeddedDrawingPoint {rem
-  final String pointId; // Unique identifier for each point
+class EmbeddedDrawingPoint {
+  final String pointId;
   final List<double> offsetsX;
   final List<double> offsetsY;
   final int colorValue;

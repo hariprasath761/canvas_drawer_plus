@@ -47,6 +47,13 @@ abstract class DrawingRoomRepository {
     List<DrawingPoint> allPoints,
     String userId,
   );
+
+  // AI Enhancement methods
+  Future<String?> analyzeDrawingWithAI({
+    required String roomId,
+    required String analysisPrompt,
+    String? apiKey,
+  });
 }
 
 class DrawingRoomRepositoryImpl implements DrawingRoomRepository {
@@ -274,5 +281,27 @@ class DrawingRoomRepositoryImpl implements DrawingRoomRepository {
     String userId,
   ) {
     return allPoints.where((point) => point.userId == userId).toList();
+  }
+
+  @override
+  Future<String?> analyzeDrawingWithAI({
+    required String roomId,
+    required String analysisPrompt,
+    String? apiKey,
+  }) async {
+    // This is a placeholder implementation
+    // The actual AI analysis is handled in the ViewModel layer
+    // This method can be used for future repository-level AI integrations
+    try {
+      final room = await getRoom(roomId);
+      if (room == null || room.drawingPoints.isEmpty) {
+        return 'No drawings found to analyze';
+      }
+
+      // Return a basic analysis based on drawing count
+      return 'Room contains ${room.drawingPoints.length} drawing elements. Use the ViewModel methods for detailed AI analysis.';
+    } catch (e) {
+      return 'Failed to analyze drawings: $e';
+    }
   }
 }
