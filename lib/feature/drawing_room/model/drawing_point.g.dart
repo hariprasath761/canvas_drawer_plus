@@ -23,8 +23,16 @@ const EmbeddedDrawingPointSchema = Schema(
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
-    r'hashCode': PropertySchema(id: 2, name: r'hashCode', type: IsarType.long),
-    r'isShape': PropertySchema(id: 3, name: r'isShape', type: IsarType.bool),
+    r'hashCode': PropertySchema(
+      id: 2,
+      name: r'hashCode',
+      type: IsarType.long,
+    ),
+    r'isShape': PropertySchema(
+      id: 3,
+      name: r'isShape',
+      type: IsarType.bool,
+    ),
     r'offsetsX': PropertySchema(
       id: 4,
       name: r'offsetsX',
@@ -35,15 +43,27 @@ const EmbeddedDrawingPointSchema = Schema(
       name: r'offsetsY',
       type: IsarType.doubleList,
     ),
-    r'pointId': PropertySchema(id: 6, name: r'pointId', type: IsarType.string),
+    r'pointId': PropertySchema(
+      id: 6,
+      name: r'pointId',
+      type: IsarType.string,
+    ),
     r'tool': PropertySchema(
       id: 7,
       name: r'tool',
       type: IsarType.byte,
       enumMap: _EmbeddedDrawingPointtoolEnumValueMap,
     ),
-    r'userId': PropertySchema(id: 8, name: r'userId', type: IsarType.string),
-    r'width': PropertySchema(id: 9, name: r'width', type: IsarType.double),
+    r'userId': PropertySchema(
+      id: 8,
+      name: r'userId',
+      type: IsarType.string,
+    ),
+    r'width': PropertySchema(
+      id: 9,
+      name: r'width',
+      type: IsarType.double,
+    )
   },
   estimateSize: _embeddedDrawingPointEstimateSize,
   serialize: _embeddedDrawingPointSerialize,
@@ -98,10 +118,8 @@ EmbeddedDrawingPoint _embeddedDrawingPointDeserialize(
     offsetsX: reader.readDoubleList(offsets[4]) ?? const [],
     offsetsY: reader.readDoubleList(offsets[5]) ?? const [],
     pointId: reader.readStringOrNull(offsets[6]) ?? '',
-    tool:
-        _EmbeddedDrawingPointtoolValueEnumMap[reader.readByteOrNull(
-          offsets[7],
-        )] ??
+    tool: _EmbeddedDrawingPointtoolValueEnumMap[
+            reader.readByteOrNull(offsets[7])] ??
         DrawingTool.pen,
     userId: reader.readStringOrNull(offsets[8]),
     width: reader.readDoubleOrNull(offsets[9]) ?? 2.0,
@@ -131,11 +149,9 @@ P _embeddedDrawingPointDeserializeProp<P>(
     case 6:
       return (reader.readStringOrNull(offset) ?? '') as P;
     case 7:
-      return (_EmbeddedDrawingPointtoolValueEnumMap[reader.readByteOrNull(
-                offset,
-              )] ??
-              DrawingTool.pen)
-          as P;
+      return (_EmbeddedDrawingPointtoolValueEnumMap[
+              reader.readByteOrNull(offset)] ??
+          DrawingTool.pen) as P;
     case 8:
       return (reader.readStringOrNull(offset)) as P;
     case 9:
@@ -160,306 +176,234 @@ const _EmbeddedDrawingPointtoolValueEnumMap = {
   4: DrawingTool.square,
 };
 
-extension EmbeddedDrawingPointQueryFilter
-    on
-        QueryBuilder<
-          EmbeddedDrawingPoint,
-          EmbeddedDrawingPoint,
-          QFilterCondition
-        > {
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  colorValueEqualTo(int value) {
+extension EmbeddedDrawingPointQueryFilter on QueryBuilder<EmbeddedDrawingPoint,
+    EmbeddedDrawingPoint, QFilterCondition> {
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> colorValueEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'colorValue', value: value),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'colorValue',
+        value: value,
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  colorValueGreaterThan(int value, {bool include = false}) {
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> colorValueGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'colorValue',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'colorValue',
+        value: value,
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  colorValueLessThan(int value, {bool include = false}) {
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> colorValueLessThan(
+    int value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'colorValue',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'colorValue',
+        value: value,
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  colorValueBetween(
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> colorValueBetween(
     int lower,
     int upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'colorValue',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'colorValue',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  createdAtEqualTo(DateTime value) {
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> createdAtEqualTo(DateTime value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'createdAt', value: value),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'createdAt',
+        value: value,
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  createdAtGreaterThan(DateTime value, {bool include = false}) {
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> createdAtGreaterThan(
+    DateTime value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'createdAt',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'createdAt',
+        value: value,
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  createdAtLessThan(DateTime value, {bool include = false}) {
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> createdAtLessThan(
+    DateTime value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'createdAt',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'createdAt',
+        value: value,
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  createdAtBetween(
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> createdAtBetween(
     DateTime lower,
     DateTime upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'createdAt',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'createdAt',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  hashCodeEqualTo(int value) {
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> hashCodeEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'hashCode', value: value),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'hashCode',
+        value: value,
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  hashCodeGreaterThan(int value, {bool include = false}) {
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> hashCodeGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'hashCode',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'hashCode',
+        value: value,
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  hashCodeLessThan(int value, {bool include = false}) {
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> hashCodeLessThan(
+    int value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'hashCode',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'hashCode',
+        value: value,
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  hashCodeBetween(
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> hashCodeBetween(
     int lower,
     int upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'hashCode',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'hashCode',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  isShapeEqualTo(bool value) {
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> isShapeEqualTo(bool value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'isShape', value: value),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isShape',
+        value: value,
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  offsetsXElementEqualTo(double value, {double epsilon = Query.epsilon}) {
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> offsetsXElementEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(
-          property: r'offsetsX',
-          value: value,
-          epsilon: epsilon,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'offsetsX',
+        value: value,
+        epsilon: epsilon,
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  offsetsXElementGreaterThan(
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> offsetsXElementGreaterThan(
     double value, {
     bool include = false,
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'offsetsX',
-          value: value,
-          epsilon: epsilon,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'offsetsX',
+        value: value,
+        epsilon: epsilon,
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  offsetsXElementLessThan(
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> offsetsXElementLessThan(
     double value, {
     bool include = false,
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'offsetsX',
-          value: value,
-          epsilon: epsilon,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'offsetsX',
+        value: value,
+        epsilon: epsilon,
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  offsetsXElementBetween(
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> offsetsXElementBetween(
     double lower,
     double upper, {
     bool includeLower = true,
@@ -467,80 +411,90 @@ extension EmbeddedDrawingPointQueryFilter
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'offsetsX',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-          epsilon: epsilon,
-        ),
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'offsetsX',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> offsetsXLengthEqualTo(int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'offsetsX',
+        length,
+        true,
+        length,
+        true,
       );
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  offsetsXLengthEqualTo(int length) {
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> offsetsXIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(r'offsetsX', length, true, length, true);
+      return query.listLength(
+        r'offsetsX',
+        0,
+        true,
+        0,
+        true,
+      );
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  offsetsXIsEmpty() {
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> offsetsXIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(r'offsetsX', 0, true, 0, true);
+      return query.listLength(
+        r'offsetsX',
+        0,
+        false,
+        999999,
+        true,
+      );
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  offsetsXIsNotEmpty() {
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> offsetsXLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(r'offsetsX', 0, false, 999999, true);
+      return query.listLength(
+        r'offsetsX',
+        0,
+        true,
+        length,
+        include,
+      );
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  offsetsXLengthLessThan(int length, {bool include = false}) {
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> offsetsXLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(r'offsetsX', 0, true, length, include);
+      return query.listLength(
+        r'offsetsX',
+        length,
+        include,
+        999999,
+        true,
+      );
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  offsetsXLengthGreaterThan(int length, {bool include = false}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(r'offsetsX', length, include, 999999, true);
-    });
-  }
-
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  offsetsXLengthBetween(
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> offsetsXLengthBetween(
     int lower,
     int upper, {
     bool includeLower = true,
@@ -557,73 +511,54 @@ extension EmbeddedDrawingPointQueryFilter
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  offsetsYElementEqualTo(double value, {double epsilon = Query.epsilon}) {
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> offsetsYElementEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(
-          property: r'offsetsY',
-          value: value,
-          epsilon: epsilon,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'offsetsY',
+        value: value,
+        epsilon: epsilon,
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  offsetsYElementGreaterThan(
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> offsetsYElementGreaterThan(
     double value, {
     bool include = false,
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'offsetsY',
-          value: value,
-          epsilon: epsilon,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'offsetsY',
+        value: value,
+        epsilon: epsilon,
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  offsetsYElementLessThan(
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> offsetsYElementLessThan(
     double value, {
     bool include = false,
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'offsetsY',
-          value: value,
-          epsilon: epsilon,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'offsetsY',
+        value: value,
+        epsilon: epsilon,
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  offsetsYElementBetween(
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> offsetsYElementBetween(
     double lower,
     double upper, {
     bool includeLower = true,
@@ -631,80 +566,90 @@ extension EmbeddedDrawingPointQueryFilter
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'offsetsY',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-          epsilon: epsilon,
-        ),
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'offsetsY',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> offsetsYLengthEqualTo(int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'offsetsY',
+        length,
+        true,
+        length,
+        true,
       );
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  offsetsYLengthEqualTo(int length) {
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> offsetsYIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(r'offsetsY', length, true, length, true);
+      return query.listLength(
+        r'offsetsY',
+        0,
+        true,
+        0,
+        true,
+      );
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  offsetsYIsEmpty() {
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> offsetsYIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(r'offsetsY', 0, true, 0, true);
+      return query.listLength(
+        r'offsetsY',
+        0,
+        false,
+        999999,
+        true,
+      );
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  offsetsYIsNotEmpty() {
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> offsetsYLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(r'offsetsY', 0, false, 999999, true);
+      return query.listLength(
+        r'offsetsY',
+        0,
+        true,
+        length,
+        include,
+      );
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  offsetsYLengthLessThan(int length, {bool include = false}) {
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> offsetsYLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(r'offsetsY', 0, true, length, include);
+      return query.listLength(
+        r'offsetsY',
+        length,
+        include,
+        999999,
+        true,
+      );
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  offsetsYLengthGreaterThan(int length, {bool include = false}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(r'offsetsY', length, include, 999999, true);
-    });
-  }
-
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  offsetsYLengthBetween(
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> offsetsYLengthBetween(
     int lower,
     int upper, {
     bool includeLower = true,
@@ -721,73 +666,54 @@ extension EmbeddedDrawingPointQueryFilter
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  pointIdEqualTo(String value, {bool caseSensitive = true}) {
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> pointIdEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(
-          property: r'pointId',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'pointId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  pointIdGreaterThan(
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> pointIdGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'pointId',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'pointId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  pointIdLessThan(
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> pointIdLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'pointId',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'pointId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  pointIdBetween(
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> pointIdBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -795,277 +721,211 @@ extension EmbeddedDrawingPointQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'pointId',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'pointId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  pointIdStartsWith(String value, {bool caseSensitive = true}) {
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> pointIdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.startsWith(
-          property: r'pointId',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'pointId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  pointIdEndsWith(String value, {bool caseSensitive = true}) {
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> pointIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.endsWith(
-          property: r'pointId',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'pointId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  pointIdContains(String value, {bool caseSensitive = true}) {
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+          QAfterFilterCondition>
+      pointIdContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.contains(
-          property: r'pointId',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'pointId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  pointIdMatches(String pattern, {bool caseSensitive = true}) {
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+          QAfterFilterCondition>
+      pointIdMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.matches(
-          property: r'pointId',
-          wildcard: pattern,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'pointId',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  pointIdIsEmpty() {
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> pointIdIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'pointId', value: ''),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'pointId',
+        value: '',
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  pointIdIsNotEmpty() {
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> pointIdIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(property: r'pointId', value: ''),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'pointId',
+        value: '',
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  toolEqualTo(DrawingTool value) {
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> toolEqualTo(DrawingTool value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'tool', value: value),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'tool',
+        value: value,
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  toolGreaterThan(DrawingTool value, {bool include = false}) {
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> toolGreaterThan(
+    DrawingTool value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'tool',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'tool',
+        value: value,
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  toolLessThan(DrawingTool value, {bool include = false}) {
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> toolLessThan(
+    DrawingTool value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'tool',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'tool',
+        value: value,
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  toolBetween(
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> toolBetween(
     DrawingTool lower,
     DrawingTool upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'tool',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'tool',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  userIdIsNull() {
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> userIdIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const FilterCondition.isNull(property: r'userId'),
-      );
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'userId',
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  userIdIsNotNull() {
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> userIdIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const FilterCondition.isNotNull(property: r'userId'),
-      );
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'userId',
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  userIdEqualTo(String? value, {bool caseSensitive = true}) {
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> userIdEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(
-          property: r'userId',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'userId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  userIdGreaterThan(
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> userIdGreaterThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'userId',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'userId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  userIdLessThan(
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> userIdLessThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'userId',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'userId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  userIdBetween(
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> userIdBetween(
     String? lower,
     String? upper, {
     bool includeLower = true,
@@ -1073,180 +933,137 @@ extension EmbeddedDrawingPointQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'userId',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'userId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  userIdStartsWith(String value, {bool caseSensitive = true}) {
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> userIdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.startsWith(
-          property: r'userId',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'userId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  userIdEndsWith(String value, {bool caseSensitive = true}) {
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> userIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.endsWith(
-          property: r'userId',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'userId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  userIdContains(String value, {bool caseSensitive = true}) {
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+          QAfterFilterCondition>
+      userIdContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.contains(
-          property: r'userId',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'userId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  userIdMatches(String pattern, {bool caseSensitive = true}) {
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+          QAfterFilterCondition>
+      userIdMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.matches(
-          property: r'userId',
-          wildcard: pattern,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'userId',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  userIdIsEmpty() {
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> userIdIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'userId', value: ''),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'userId',
+        value: '',
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  userIdIsNotEmpty() {
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> userIdIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(property: r'userId', value: ''),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'userId',
+        value: '',
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  widthEqualTo(double value, {double epsilon = Query.epsilon}) {
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> widthEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(
-          property: r'width',
-          value: value,
-          epsilon: epsilon,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'width',
+        value: value,
+        epsilon: epsilon,
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  widthGreaterThan(
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> widthGreaterThan(
     double value, {
     bool include = false,
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'width',
-          value: value,
-          epsilon: epsilon,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'width',
+        value: value,
+        epsilon: epsilon,
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  widthLessThan(
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> widthLessThan(
     double value, {
     bool include = false,
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'width',
-          value: value,
-          epsilon: epsilon,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'width',
+        value: value,
+        epsilon: epsilon,
+      ));
     });
   }
 
-  QueryBuilder<
-    EmbeddedDrawingPoint,
-    EmbeddedDrawingPoint,
-    QAfterFilterCondition
-  >
-  widthBetween(
+  QueryBuilder<EmbeddedDrawingPoint, EmbeddedDrawingPoint,
+      QAfterFilterCondition> widthBetween(
     double lower,
     double upper, {
     bool includeLower = true,
@@ -1254,24 +1071,17 @@ extension EmbeddedDrawingPointQueryFilter
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'width',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-          epsilon: epsilon,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'width',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
     });
   }
 }
 
-extension EmbeddedDrawingPointQueryObject
-    on
-        QueryBuilder<
-          EmbeddedDrawingPoint,
-          EmbeddedDrawingPoint,
-          QFilterCondition
-        > {}
+extension EmbeddedDrawingPointQueryObject on QueryBuilder<EmbeddedDrawingPoint,
+    EmbeddedDrawingPoint, QFilterCondition> {}

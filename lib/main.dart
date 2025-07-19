@@ -1,5 +1,6 @@
 import 'package:canvas_drawer_plus/consts.dart';
 import 'package:canvas_drawer_plus/core/theme/material_theme.dart';
+import 'package:canvas_drawer_plus/env/env.dart';
 import 'package:canvas_drawer_plus/feature/drawing_room/model/drawing_room.dart';
 import 'package:canvas_drawer_plus/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -24,7 +25,7 @@ late Isar isar;
 final logger = Logger();
 
 void main() async {
-  Gemini.init(apiKey: googleApiKey);
+  Gemini.init(apiKey: Env.geminiAPIKey);
   WidgetsFlutterBinding.ensureInitialized();
   final dir = await getApplicationDocumentsDirectory();
   isar = await Isar.open([DrawingRoomSchema], directory: dir.path);

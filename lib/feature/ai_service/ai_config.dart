@@ -1,11 +1,9 @@
+import 'package:canvas_drawer_plus/env/env.dart';
+
 /// Configuration class for AI services in Canvas Drawer Plus
 class AIConfig {
   // OpenRouter API Configuration
-  static const String openRouterApiKey = String.fromEnvironment(
-    'OPENROUTER_API_KEY',
-    defaultValue:
-        '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',
-  );
+  static const String openRouterApiKey = Env.openRouterAPIKey;
 
   static const String defaultAnalysisModel = 'anthropic/claude-3.5-sonnet';
   static const String defaultEnhancementModel = 'anthropic/claude-3.5-sonnet';
