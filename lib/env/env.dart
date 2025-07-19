@@ -9,4 +9,7 @@ abstract class Env {
 
   @EnviedField(varName: 'OPENROUTER_API_KEY')
   static const String openRouterAPIKey = _Env.openRouterAPIKey;
+
+  @EnviedField(varName: 'HUGGING_FACE_API_KEY')
+  static const String huggingFaceAPIKey = _Env.huggingFaceAPIKey;
 }

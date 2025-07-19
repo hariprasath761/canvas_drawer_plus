@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:canvas_drawer_plus/env/env.dart';
 import 'package:canvas_drawer_plus/feature/gemma/download_model.dart';
 import 'package:canvas_drawer_plus/main.dart';
 import 'package:flutter/foundation.dart';
@@ -8,7 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-final accessToken = "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";
+final accessToken = Env.huggingFaceAPIKey;
 
 class GemmaDownloaderDataSource {
   final DownloadModel model;
