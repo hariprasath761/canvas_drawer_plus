@@ -1,3 +1,6 @@
+import 'package:canvas_drawer_plus/feature/auth/model/user_model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 import '../datasource/drawing_room_remote_datasource.dart';
 import '../datasource/drawing_room_local_datasource.dart';
 import '../../model/drawing_room.dart';
@@ -38,6 +41,8 @@ abstract class DrawingRoomRepository {
   Future<void> leaveRoom(String roomId);
 
   Future<void> syncOfflineDrawings();
+
+  Future<List<UserModel>> getParticipantData(List<String> uid);
 
   // Backward compatibility methods
   Stream<List<DrawingPoint>> getDrawingUpdates(String roomId);
@@ -303,5 +308,10 @@ class DrawingRoomRepositoryImpl implements DrawingRoomRepository {
     } catch (e) {
       return 'Failed to analyze drawings: $e';
     }
+  }
+  
+  @override
+  Future<List<UserModel>> getParticipantData(List<String> uid) {
+    return _remoteDataSource.getParticipantData(uid);
   }
 }

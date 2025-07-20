@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:canvas_drawer_plus/feature/auth/model/user_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../model/drawing_room.dart';
@@ -16,6 +17,7 @@ abstract class DrawingRoomRemoteDataSource {
   Future<void> addDrawings(String roomId, List<EmbeddedDrawingPoint> points);
   Future<void> clearDrawings(String roomId);
   Future<DrawingRoom?> getRoom(String roomId);
+  Future<List<UserModel>> getParticipantData(List<String> uid);
   Stream<DrawingRoom> getRoomUpdates(String roomId);
   Future<List<DrawingRoom>> getUserRooms();
   Future<DrawingRoom> joinRoom(String roomId, {String? password});
@@ -205,5 +207,19 @@ class FirebaseDrawingRoomDataSource implements DrawingRoomRemoteDataSource {
       6,
       (index) => chars[random.nextInt(chars.length)],
     ).join();
+  }
+
+  @override
+  Future<List<UserModel>> getParticipantData(List<String> uid) {
+    return Future.wait(
+      uid.map((id) async {
+        final userDoc = await _firestore.collection('users').doc(id).get();
+        if (userDoc.exists) {
+          return UserModel.fromJson(userDoc.data()!);
+        } else {
+          throw Exception('User not found: $id');
+        }
+      }),
+    );
   }
 }

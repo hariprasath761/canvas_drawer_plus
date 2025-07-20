@@ -20,5 +20,6 @@ class GeminiService {
     } catch (e) {
       throw GeminiException('Failed to send text message: $e');
     }
+    return null;
   }
 }

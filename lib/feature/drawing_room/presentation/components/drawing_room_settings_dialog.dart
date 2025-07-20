@@ -1,5 +1,8 @@
+import 'package:canvas_drawer_plus/feature/auth/model/user_model.dart';
 import 'package:canvas_drawer_plus/feature/drawing_room/data/repository/drawing_room_repository.dart';
 import 'package:canvas_drawer_plus/feature/drawing_room/presentation/viewmodel/drawing_room_viewmodel.dart';
+import 'package:canvas_drawer_plus/main.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -19,6 +22,26 @@ class _DrawingRoomSettingsDialogState extends State<DrawingRoomSettingsDialog> {
   late DrawingRoomRepository _roomService;
   DrawingRoom? _room;
   bool _isLoading = true;
+  final _firestore = FirebaseFirestore.instance;
+  List<Map<String, dynamic>> users = [];
+  List<UserModel> participants = [];
+  UserModel? createdBy;
+
+  Future<List<Map<String, dynamic>>> getUserName(List<String> userIds) async {
+    if (userIds.isEmpty) return [];
+    for (var user in userIds) {
+      final userInfo = await _firestore.collection('users').doc(user).get();
+      logger.i(userInfo.data());
+      if (userInfo.exists && userInfo.data() != null) {
+        users.add(userInfo.data()!);
+      }
+    }
+    if (mounted) {
+      setState(() {});
+    }
+
+    return users;
+  }
 
   @override
   void initState() {
@@ -31,6 +54,17 @@ class _DrawingRoomSettingsDialogState extends State<DrawingRoomSettingsDialog> {
   Future<void> _loadRoomDetails() async {
     try {
       final room = await _roomService.getRoom(widget.roomId);
+      participants = await _roomService.getParticipantData(
+        room?.participants ?? [],
+      );
+      try {
+        createdBy = participants.firstWhere(
+          (user) => user.uid == room?.createdBy,
+        );
+      } catch (e) {
+        logger.e('Error fetching participants: $e');
+      }
+
       setState(() {
         _room = room;
         _isLoading = false;
@@ -123,7 +157,7 @@ class _DrawingRoomSettingsDialogState extends State<DrawingRoomSettingsDialog> {
                 children: [
                   _buildInfoRow('Room Name', _room!.roomName),
                   _buildInfoRow('Room ID', _room!.roomId),
-                  _buildInfoRow('Creator', _room!.createdBy),
+                  _buildInfoRow('Creator', createdBy?.displayName ?? 'Unknown'),
                   _buildInfoRow(
                     'Participants',
                     '${_room!.participants.length}/${_room!.maxParticipants}',
@@ -140,24 +174,28 @@ class _DrawingRoomSettingsDialogState extends State<DrawingRoomSettingsDialog> {
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
+
                   ConstrainedBox(
                     constraints: const BoxConstraints(maxHeight: 120),
                     child: SingleChildScrollView(
                       child: Column(
                         children:
-                            _room!.participants.map((participant) {
-                              final isCreator = participant == _room!.createdBy;
+                            participants.map((participant) {
+                              final isCreator =
+                                  participant.uid == _room!.createdBy;
                               return ListTile(
                                 dense: true,
                                 contentPadding: EdgeInsets.zero,
                                 leading: CircleAvatar(
                                   radius: 16,
                                   child: Text(
-                                    participant.substring(0, 1).toUpperCase(),
+                                    participant.displayName
+                                        .substring(0, 1)
+                                        .toUpperCase(),
                                   ),
                                 ),
                                 title: Text(
-                                  participant,
+                                  participant.displayName,
                                   style: const TextStyle(fontSize: 12),
                                 ),
                                 trailing:
@@ -197,12 +235,13 @@ class _DrawingRoomSettingsDialogState extends State<DrawingRoomSettingsDialog> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 80,
+            width: 100,
             child: Text(
               '$label:',
               style: const TextStyle(fontWeight: FontWeight.w500),
             ),
           ),
+
           Expanded(
             child: Text(value, style: const TextStyle(color: Colors.grey)),
           ),
