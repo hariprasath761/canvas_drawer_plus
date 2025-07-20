@@ -14,7 +14,7 @@ class AppColors {
   // Accent Colors
   static const Color accent = Color(0xFFEC4899); // Pink
   static const Color accentLight = Color(0xFFF472B6);
-  static const Color accentDark = Color(0xBE185D);
+  static const Color accentDark = Color(0x00be185d);
 
   // Success Colors
   static const Color success = Color(0xFF10B981); // Emerald
@@ -105,11 +105,9 @@ class AppTheme {
         onError: Colors.white,
         errorContainer: AppColors.errorLight,
         onErrorContainer: AppColors.errorDark,
-        background: AppColors.background,
-        onBackground: AppColors.onBackground,
         surface: AppColors.surface,
         onSurface: AppColors.onSurface,
-        surfaceVariant: AppColors.surfaceVariant,
+        surfaceContainerHighest: AppColors.surfaceVariant,
         onSurfaceVariant: AppColors.onSurfaceVariant,
         outline: AppColors.outline,
         outlineVariant: AppColors.outlineVariant,
@@ -233,11 +231,9 @@ class AppTheme {
         onError: AppColors.errorDark,
         errorContainer: AppColors.errorDark,
         onErrorContainer: AppColors.errorLight,
-        background: AppColors.backgroundDark,
-        onBackground: AppColors.onBackgroundDark,
         surface: AppColors.surfaceDark,
         onSurface: AppColors.onSurfaceDark,
-        surfaceVariant: AppColors.surfaceVariantDark,
+        surfaceContainerHighest: AppColors.surfaceVariantDark,
         onSurfaceVariant: AppColors.onSurfaceVariantDark,
         outline: AppColors.outlineDark,
         outlineVariant: AppColors.outlineVariantDark,

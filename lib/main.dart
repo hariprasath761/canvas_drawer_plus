@@ -1,12 +1,9 @@
-import 'package:canvas_drawer_plus/consts.dart';
 import 'package:canvas_drawer_plus/core/theme/material_theme.dart';
-import 'package:canvas_drawer_plus/env/env.dart';
 import 'package:canvas_drawer_plus/feature/ai_service/gemini_service.dart';
 import 'package:canvas_drawer_plus/feature/drawing_room/model/drawing_room.dart';
 import 'package:canvas_drawer_plus/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:isar/isar.dart';
 import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';

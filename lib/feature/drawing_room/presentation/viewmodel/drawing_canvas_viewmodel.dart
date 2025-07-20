@@ -83,7 +83,7 @@ class DrawingCanvasViewModel extends ChangeNotifier {
   String? get modelLoadingMessage => _modelLoadingMessage;
 
   // AI Model initialization state
-  bool _isModelInitializing = false;
+  final bool _isModelInitializing = false;
   double? _modelDownloadProgress;
   String? _modelLoadingMessage;
 
@@ -198,7 +198,7 @@ class DrawingCanvasViewModel extends ChangeNotifier {
 
     try {
       response = await GeminiService.sendTextMessage(message: prompt);
-      logger.e('Error generating drawing from Gemma: ${response}');
+      logger.e('Error generating drawing from Gemma: $response');
       // response = await analyzeDrawingImageWithOpenRouter(
       //   analysisPrompt: prompt,
       //   model: OpenRouterModels.geminiPro,
@@ -221,7 +221,7 @@ class DrawingCanvasViewModel extends ChangeNotifier {
 
     logger.i('Gemma response: $response');
     if (response.isNotEmpty) {
-      final generatedPoints = _parseGemmaResponseToDrawingPoints(response!);
+      final generatedPoints = _parseGemmaResponseToDrawingPoints(response);
 
       if (generatedPoints.isNotEmpty) {
         // Add the generated points to the canvas
@@ -292,8 +292,8 @@ class DrawingCanvasViewModel extends ChangeNotifier {
     }
 
     logger.i('Gemma response: $response');
-    if (response != null && response!.isNotEmpty) {
-      final generatedPoints = _parseGemmaResponseToDrawingPoints(response!);
+    if (response != null && response.isNotEmpty) {
+      final generatedPoints = _parseGemmaResponseToDrawingPoints(response);
 
       if (generatedPoints.isNotEmpty) {
         // Add the generated points to the canvas
@@ -1037,7 +1037,7 @@ Important: Use colors from: black, red, blue, green, brown, amber. Provide coord
 
         Fluttertoast.showToast(
           msg:
-              'Created drawing from text: "${text.length > 20 ? text.substring(0, 20) + "..." : text}"',
+              'Created drawing from text: "${text.length > 20 ? "${text.substring(0, 20)}..." : text}"',
           toastLength: Toast.LENGTH_LONG,
         );
       } else {

@@ -129,7 +129,7 @@ class EmbeddedDrawingPoint {
       pointId: pointId ?? this.pointId,
       offsetsX: newOffsets.map((offset) => offset.dx).toList(),
       offsetsY: newOffsets.map((offset) => offset.dy).toList(),
-      colorValue: color?.value ?? this.colorValue,
+      colorValue: color?.value ?? colorValue,
       width: width ?? this.width,
       tool: tool ?? this.tool,
       userId: userId ?? this.userId,

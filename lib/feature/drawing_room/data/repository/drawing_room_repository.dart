@@ -1,5 +1,4 @@
 import 'package:canvas_drawer_plus/feature/auth/model/user_model.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 import '../datasource/drawing_room_remote_datasource.dart';
 import '../datasource/drawing_room_local_datasource.dart';

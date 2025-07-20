@@ -2,6 +2,7 @@
 ///
 /// This file demonstrates how to use the OpenRouter service for AI-enhanced
 /// drawing capabilities in your Flutter app.
+library;
 
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
