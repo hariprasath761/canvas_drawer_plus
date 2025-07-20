@@ -1,11 +1,15 @@
+import 'package:canvas_drawer_plus/feature/drawing_room/presentation/components/intersection_icon.dart';
+import 'package:canvas_drawer_plus/feature/drawing_room/presentation/components/speech_to_text/speech_to_text.dart';
 import 'package:canvas_drawer_plus/main.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:lottie/lottie.dart';
 import '../../../../core/theme/app_color.dart';
 import '../../../../core/route/app_route_name.dart';
 import '../../model/drawing_point.dart';
 import '../components/drawing_room_settings_dialog.dart';
 import '../components/network_status_indicator.dart';
+import '../components/text_to_speech/text_to_speech.dart';
 import '../viewmodel/drawing_canvas_viewmodel.dart';
 import '../viewmodel/drawing_room_viewmodel.dart';
 
@@ -140,6 +144,10 @@ class _DrawingRoomScreenMVVMState extends State<DrawingRoomScreenMVVM> {
                 if (canvasViewModel.isModelInitializing)
                   _buildModelInitializationOverlay(canvasViewModel),
 
+                // Lottie Animation Overlay
+                if (canvasViewModel.isLottieAnimationVisible)
+                  _buildLottieAnimationOverlay(canvasViewModel),
+
                 if (canvasViewModel.isLoading)
                   Container(
                     color: Colors.black.withOpacity(0.3),
@@ -231,6 +239,20 @@ class _DrawingRoomScreenMVVMState extends State<DrawingRoomScreenMVVM> {
                   );
                 },
               ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          // Lottie Animation Button
+          GestureDetector(
+            onTap: () => _showLottieAnimationDialog(viewModel),
+            child: Container(
+              width: 60,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.grey.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: IntersectingCirclesIcon(),
             ),
           ),
           const SizedBox(width: 8),
@@ -458,6 +480,77 @@ class _DrawingRoomScreenMVVMState extends State<DrawingRoomScreenMVVM> {
       ),
     );
   }
+
+  // Show Lottie animation dialog
+  void _showLottieAnimationDialog(DrawingCanvasViewModel viewModel) {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Choose Animation'),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: viewModel.availableLottieAnimations.length,
+                itemBuilder: (context, index) {
+                  final animationPath =
+                      viewModel.availableLottieAnimations[index];
+                  final displayName = viewModel.getLottieDisplayName(
+                    animationPath,
+                  );
+
+                  return ListTile(
+                    leading: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.purple.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.animation, color: Colors.purple),
+                    ),
+                    title: Text(displayName),
+                    subtitle: Text(animationPath.split('/').last),
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      viewModel.showLottieAnimation(animationPath);
+                    },
+                  );
+                },
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Cancel'),
+              ),
+            ],
+          ),
+    );
+  }
+
+  // Build Lottie animation overlay
+  Widget _buildLottieAnimationOverlay(DrawingCanvasViewModel viewModel) {
+    return GestureDetector(
+      onTap: viewModel.hideLottieAnimation,
+      child: Container(
+        color: Colors.transparent,
+        child: Center(
+          child: SizedBox(
+            width: MediaQuery.of(context).size.width * 0.8,
+            height: MediaQuery.of(context).size.height * 0.6,
+            child: Lottie.asset(
+              viewModel.currentLottieAnimation!,
+              fit: BoxFit.contain,
+              repeat: true,
+              animate: true,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 // Keep the same DrawingPainter class as it's already well-structured
@@ -626,113 +719,30 @@ class _AIExpandableMenuState extends State<_AIExpandableMenu>
     });
   }
 
-  void showSpeechToDrawingDialog() {
+  void speechToTextAlert() {
     _toggleMenu();
     showDialog(
       context: context,
       builder:
-          (context) => ChangeNotifierProvider.value(
-            value: widget.viewModel,
-            child: Consumer<DrawingCanvasViewModel>(
-              builder: (context, model, child) {
-                return AlertDialog(
-                  title: const Text('Speech to Drawing'),
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              model.lastWords.isNotEmpty
-                                  ? 'Recognized: ${model.lastWords}'
-                                  : 'No speech recognized yet.',
-                            ),
-                          ),
-                          if (model.lastWords.isNotEmpty)
-                            IconButton(
-                              onPressed: () {
-                                model.clearLastWords();
-                              },
-                              icon: Icon(Icons.close, color: Colors.grey[600]),
-                            ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  actions: [
-                    if (model.lastWords.isNotEmpty)
-                      TextButton(
-                        onPressed: () {
-                          model.convertTextToDrawing(model.lastWords);
-                          Navigator.of(context).pop();
-                        },
-                        child: const Text('Draw'),
-                      ),
-                    IconButton(
-                      onPressed: () {
-                        if (widget.viewModel.speechToText.isListening) {
-                          widget.viewModel.stopListeningAudio();
-                        } else {
-                          widget.viewModel.startListeningAudio();
-                        }
-                      },
-                      icon: Icon(
-                        widget.viewModel.speechToText.isListening
-                            ? Icons.mic_off
-                            : Icons.mic,
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
+          (context) => SpeechToTextAlert(
+            onpressed: (text) {
+              widget.viewModel.convertTextToDrawing(text);
+              Navigator.of(context).pop();
+            },
           ),
     );
   }
 
   void _showTextToDrawingDialog() {
-    final textController = TextEditingController();
     showDialog(
       context: context,
+      barrierDismissible: false, // Makes dialog non-dismissible
       builder:
-          (context) => AlertDialog(
-            title: const Text('Text to Drawing'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text('Enter text to convert to drawing:'),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: textController,
-                  decoration: const InputDecoration(
-                    hintText: 'e.g., "Draw a house with a tree"',
-                    border: OutlineInputBorder(),
-                  ),
-                  maxLines: 3,
-                  onSubmitted: (value) {
-                    Navigator.of(context).pop();
-                    widget.viewModel.convertTextToDrawing(value);
-                    _toggleMenu();
-                  },
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Cancel'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  widget.viewModel.convertTextToDrawing(textController.text);
-                  _toggleMenu();
-                },
-                child: const Text('Generate'),
-              ),
-            ],
+          (context) => TextToDrawingDialog(
+            onGenerateDrawing: (text) {
+              widget.viewModel.convertTextToDrawing(text);
+              _toggleMenu();
+            },
           ),
     );
   }
@@ -765,7 +775,7 @@ class _AIExpandableMenuState extends State<_AIExpandableMenu>
               margin: const EdgeInsets.only(bottom: 16),
               child: FloatingActionButton.extended(
                 heroTag: "SpeechToDrawing",
-                onPressed: showSpeechToDrawingDialog,
+                onPressed: speechToTextAlert,
                 backgroundColor: Colors.green,
                 icon: const Icon(Icons.mic),
                 label: const Text('Speech to Drawing'),

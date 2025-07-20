@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:canvas_drawer_plus/feature/ai_service/ai_config.dart';
+import 'package:canvas_drawer_plus/feature/ai_service/gemini_service.dart';
 import 'package:canvas_drawer_plus/feature/ai_service/openrouter_service.dart';
 import 'package:canvas_drawer_plus/feature/gemma/download_model.dart';
 import 'package:canvas_drawer_plus/feature/gemma/downloader_datasource.dart';
@@ -122,6 +123,9 @@ class DrawingCanvasViewModel extends ChangeNotifier {
       _initSpeech();
 
       initializeOpenRouter(AIConfig.openRouterApiKey);
+      logger.i(
+        'OpenRouter initialized with API key: ${AIConfig.openRouterApiKey}',
+      );
 
       _setState(DrawingCanvasState.idle);
     } catch (e) {
@@ -193,12 +197,15 @@ class DrawingCanvasViewModel extends ChangeNotifier {
     String? response;
 
     try {
-      response = await analyzeDrawingImageWithOpenRouter(
-        analysisPrompt: prompt,
-        model: OpenRouterModels.geminiPro,
-      );
+      response = await GeminiService.sendTextMessage(message: prompt);
+      logger.e('Error generating drawing from Gemma: ${response}');
+      // response = await analyzeDrawingImageWithOpenRouter(
+      //   analysisPrompt: prompt,
+      //   model: OpenRouterModels.geminiPro,
+      // );
       // apiCall = await gemini.prompt(parts: [Part.text(prompt)]);
     } catch (e) {
+      logger.e('Error generating drawing from Gemma: $e');
       _setError('Failed to get response from Gemma: ${e.toString()}');
       _setState(DrawingCanvasState.idle);
       notifyListeners();
@@ -213,7 +220,7 @@ class DrawingCanvasViewModel extends ChangeNotifier {
     }
 
     logger.i('Gemma response: $response');
-    if (response != null && response!.isNotEmpty) {
+    if (response.isNotEmpty) {
       final generatedPoints = _parseGemmaResponseToDrawingPoints(response!);
 
       if (generatedPoints.isNotEmpty) {
@@ -1174,6 +1181,50 @@ Important: Use colors from: black, red, blue, green, brown, amber. Provide coord
       logger.e('Error parsing OpenRouter response: $e');
       return [];
     }
+  }
+
+  // Lottie animation related properties
+  String? _currentLottieAnimation;
+  bool _isLottieAnimationVisible = false;
+
+  // Getters for Lottie animation
+  String? get currentLottieAnimation => _currentLottieAnimation;
+  bool get isLottieAnimationVisible => _isLottieAnimationVisible;
+
+  // Available Lottie animations
+  List<String> get availableLottieAnimations => [
+    'assets/lottie/confetti.json',
+    'assets/lottie/juggling_monkey.json',
+    'assets/lottie/cute_boy_running.json',
+  ];
+
+  // Get display name for Lottie animation
+  String getLottieDisplayName(String path) {
+    final fileName = path.split('/').last.replaceAll('.json', '');
+    return fileName
+        .replaceAll('_', ' ')
+        .split(' ')
+        .map((word) => word[0].toUpperCase() + word.substring(1))
+        .join(' ');
+  }
+
+  // Show Lottie animation
+  void showLottieAnimation(String animationPath) {
+    _currentLottieAnimation = animationPath;
+    _isLottieAnimationVisible = true;
+    notifyListeners();
+
+    // Auto hide animation after 3 seconds
+    Timer(const Duration(seconds: 3), () {
+      hideLottieAnimation();
+    });
+  }
+
+  // Hide Lottie animation
+  void hideLottieAnimation() {
+    _isLottieAnimationVisible = false;
+    _currentLottieAnimation = null;
+    notifyListeners();
   }
 
   // Clean up all subscriptions

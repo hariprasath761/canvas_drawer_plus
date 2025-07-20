@@ -37,7 +37,7 @@ class _SignInScreenState extends State<SignInScreen> {
       );
 
       if (mounted) {
-        Navigator.pushReplacementNamed(context, AppRouteName.drawingRoom);
+        Navigator.pushReplacementNamed(context, AppRouteName.roomList);
       }
     } catch (e) {
       if (mounted) {
